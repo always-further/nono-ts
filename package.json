@@ -1,0 +1,43 @@
+{
+  "name": "nono-ts",
+  "version": "0.3.0",
+  "description": "Node.js/TypeScript bindings for nono capability-based sandboxing",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "license": "Apache-2.0",
+  "author": "Luke Hinds",
+  "keywords": ["sandbox", "security", "capability", "landlock", "seatbelt", "napi-rs"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sigauth/nono"
+  },
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform",
+    "prepublishOnly": "napi prepublish -t npm",
+    "test": "node test.js",
+    "universal": "napi universal",
+    "version": "napi version"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^3.0.0-alpha.63"
+  },
+  "engines": {
+    "node": ">= 18"
+  },
+  "napi": {
+    "binaryName": "nono",
+    "targets": [
+      "x86_64-apple-darwin",
+      "aarch64-apple-darwin",
+      "x86_64-unknown-linux-gnu",
+      "aarch64-unknown-linux-gnu"
+    ]
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "*.node"
+  ]
+}

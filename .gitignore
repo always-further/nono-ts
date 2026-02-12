@@ -1,0 +1,14 @@
+# Rust
+target/
+**/*.rs.bk
+
+# Node
+node_modules/
+npm-debug.log*
+
+# napi-rs build artifacts
+*.node
+
+# OS
+.DS_Store
+Thumbs.db
