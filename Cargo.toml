@@ -5,8 +5,8 @@ edition = "2021"
 rust-version = "1.77"
 authors = ["Luke Hinds <luke@hinds.email>"]
 license = "Apache-2.0"
-repository = "https://github.com/sigauth/nono"
-homepage = "https://github.com/sigauth/nono"
+repository = "https://github.com/always-further/nono"
+homepage = "https://github.com/always-further/nono"
 description = "Node.js/TypeScript bindings for nono capability-based sandboxing library"
 publish = false
 

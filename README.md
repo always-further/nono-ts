@@ -3,12 +3,12 @@
 </p>
 
 <p align="center">
-  Node.js/TypeScript bindings for <a href="https://github.com/sigauth/nono">nono</a> capability-based sandboxing
+  Node.js/TypeScript bindings for <a href="https://github.com/always-further/nono">nono</a> capability-based sandboxing
 </p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/nono-ts"><img src="https://img.shields.io/npm/v/nono-ts.svg" alt="npm version"></a>
-  <a href="https://github.com/sigauth/nono/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License"></a>
+  <a href="https://github.com/always-further/nono/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License"></a>
 </p>
 
 ---

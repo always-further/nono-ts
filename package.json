@@ -9,7 +9,7 @@
   "keywords": ["sandbox", "security", "capability", "landlock", "seatbelt", "napi-rs"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/sigauth/nono"
+    "url": "https://github.com/always-further/nono"
   },
   "scripts": {
     "artifacts": "napi artifacts",

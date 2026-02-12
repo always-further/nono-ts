@@ -88,10 +88,10 @@ If you need to test against a specific nono version:
 ```toml
 # Cargo.toml - use a git reference
 [dependencies]
-nono = { git = "https://github.com/sigauth/nono", branch = "main" }
+nono = { git = "https://github.com/always-further/nono", branch = "main" }
 
 # Or a specific revision
-nono = { git = "https://github.com/sigauth/nono", rev = "abc123" }
+nono = { git = "https://github.com/always-further/nono", rev = "abc123" }
 ```
 
 ## Adding New Bindings
