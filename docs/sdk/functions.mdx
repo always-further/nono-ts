@@ -1,0 +1,225 @@
+---
+title: "Functions"
+description: "Module-level functions for applying sandboxes and checking platform support"
+---
+
+The nono SDK exports several module-level functions for applying sandboxes and querying platform support.
+
+## apply
+
+```typescript
+function apply(caps: CapabilitySet): void
+```
+
+Apply the sandbox with the given capabilities. This function activates OS-level sandboxing using Landlock (Linux) or Seatbelt (macOS).
+
+<ParamField path="caps" type="CapabilitySet" required>
+  The capability set defining what the process can access.
+</ParamField>
+
+<Warning>
+  **This operation is irreversible.** Once applied, the sandbox cannot be weakened, modified, or removed for the lifetime of the process. All child processes inherit the same restrictions.
+</Warning>
+
+### Behavior
+
+- Validates all paths in the capability set exist
+- Activates the appropriate OS sandbox mechanism
+- Throws an error if sandboxing fails
+
+### Errors
+
+| Error | Cause |
+|-------|-------|
+| Path validation | A path in the capability set doesn't exist |
+| Platform error | Sandbox mechanism unavailable or failed to activate |
+| Permission denied | Insufficient privileges to apply sandbox |
+
+### Example
+
+```typescript
+import { CapabilitySet, AccessMode, apply, isSupported } from 'nono-ts';
+
+if (!isSupported()) {
+  console.error('Sandboxing not available');
+  process.exit(1);
+}
+
+const caps = new CapabilitySet();
+caps.allowPath('/tmp', AccessMode.ReadWrite);
+caps.allowPath('/usr/lib', AccessMode.Read);
+caps.blockNetwork();
+
+try {
+  apply(caps);
+  console.log('Sandbox applied successfully');
+} catch (error) {
+  console.error('Failed to apply sandbox:', error.message);
+  process.exit(1);
+}
+
+// Process is now sandboxed
+```
+
+---
+
+## isSupported
+
+```typescript
+function isSupported(): boolean
+```
+
+Check if sandboxing is supported on the current platform.
+
+<ResponseField name="return" type="boolean">
+  `true` if sandboxing is available, `false` otherwise.
+</ResponseField>
+
+### Platform Support
+
+| Platform | Supported | Requirements |
+|----------|-----------|--------------|
+| Linux | Yes | Kernel 5.13+ with Landlock |
+| macOS | Yes | macOS 10.5+ |
+| Windows | No | — |
+
+### Example
+
+```typescript
+import { isSupported } from 'nono-ts';
+
+if (isSupported()) {
+  console.log('Sandboxing is available');
+} else {
+  console.log('Sandboxing is not available on this platform');
+}
+```
+
+---
+
+## supportInfo
+
+```typescript
+function supportInfo(): SupportInfoResult
+```
+
+Get detailed information about sandbox support on the current platform.
+
+<ResponseField name="return" type="SupportInfoResult">
+  Object containing platform support details.
+</ResponseField>
+
+### SupportInfoResult
+
+<ResponseField name="isSupported" type="boolean" required>
+  Whether sandboxing is supported.
+</ResponseField>
+
+<ResponseField name="platform" type="string" required>
+  Platform identifier: `"linux"`, `"macos"`, or `"unsupported"`.
+</ResponseField>
+
+<ResponseField name="details" type="string" required>
+  Human-readable description of the sandbox backend and any limitations.
+</ResponseField>
+
+### Example
+
+```typescript
+import { supportInfo } from 'nono-ts';
+
+const info = supportInfo();
+
+console.log(`Supported: ${info.isSupported}`);
+console.log(`Platform: ${info.platform}`);
+console.log(`Details: ${info.details}`);
+
+// Example output on macOS:
+// Supported: true
+// Platform: macos
+// Details: macOS Seatbelt sandbox available
+
+// Example output on Linux:
+// Supported: true
+// Platform: linux
+// Details: Landlock ABI v4 available
+```
+
+### Use Cases
+
+```typescript
+import { supportInfo, apply } from 'nono-ts';
+
+function initSandbox(caps: CapabilitySet) {
+  const info = supportInfo();
+
+  if (!info.isSupported) {
+    // Decide how to handle unsupported platforms
+    if (process.env.REQUIRE_SANDBOX === 'true') {
+      throw new Error(`Sandbox required but not available: ${info.details}`);
+    }
+    console.warn(`Warning: Running without sandbox (${info.details})`);
+    return;
+  }
+
+  console.log(`Applying ${info.platform} sandbox: ${info.details}`);
+  apply(caps);
+}
+```
+
+---
+
+## Usage Pattern
+
+A typical application setup:
+
+```typescript
+import {
+  CapabilitySet,
+  AccessMode,
+  apply,
+  isSupported,
+  supportInfo,
+} from 'nono-ts';
+
+function setupApplication() {
+  // 1. Check support
+  const info = supportInfo();
+  if (!info.isSupported) {
+    console.warn(`Sandbox unavailable: ${info.details}`);
+    return;
+  }
+
+  // 2. Build capabilities
+  const caps = new CapabilitySet();
+
+  // Application data
+  caps.allowPath('/var/app/data', AccessMode.ReadWrite);
+
+  // Configuration (read-only)
+  caps.allowFile('/etc/app/config.json', AccessMode.Read);
+
+  // Runtime libraries
+  caps.allowPath('/usr/lib', AccessMode.Read);
+  caps.allowPath('/lib', AccessMode.Read);
+
+  // Temp directory
+  caps.allowPath('/tmp', AccessMode.ReadWrite);
+
+  // Block network if not needed
+  if (!process.env.NEEDS_NETWORK) {
+    caps.blockNetwork();
+  }
+
+  // 3. Apply sandbox
+  try {
+    apply(caps);
+    console.log(`Sandbox active (${info.platform})`);
+  } catch (error) {
+    console.error('Sandbox failed:', error.message);
+    process.exit(1);
+  }
+}
+
+setupApplication();
+```

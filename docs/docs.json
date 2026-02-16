@@ -1,0 +1,58 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "nono",
+  "logo": {
+    "dark": "/assets/logo.png",
+    "light": "/assets/logo.png"
+  },
+  "favicon": "/assets/logo.png",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373"
+  },
+  "appearance": {
+    "default": "dark"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/always-further/nono"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Discord",
+      "href": "https://discord.gg/pPcjYzGvbS"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Node.js SDK",
+            "pages": [
+              "sdk/overview",
+              "sdk/quickstart",
+              "sdk/capability-set",
+              "sdk/query-context",
+              "sdk/sandbox-state",
+              "sdk/functions",
+              "sdk/types"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/always-further/nono",
+      "discord": "https://discord.gg/pPcjYzGvbS"
+    }
+  }
+}

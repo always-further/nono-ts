@@ -1,0 +1,310 @@
+---
+title: "CapabilitySet"
+description: "Build a set of filesystem and network capabilities for the sandbox"
+---
+
+The `CapabilitySet` class is the primary way to define what resources your sandboxed process can access. It provides methods for granting filesystem access, blocking network access, and managing command execution.
+
+## Constructor
+
+```typescript
+const caps = new CapabilitySet();
+```
+
+Creates an empty capability set. By default, no filesystem paths are accessible and network access is allowed.
+
+## Methods
+
+### allowPath
+
+```typescript
+allowPath(path: string, mode: AccessMode): void
+```
+
+Grant access to a directory and all its contents.
+
+<ParamField path="path" type="string" required>
+  Absolute path to the directory. Must exist and be a directory.
+</ParamField>
+
+<ParamField path="mode" type="AccessMode" required>
+  Access level to grant: `Read`, `Write`, or `ReadWrite`.
+</ParamField>
+
+<Warning>
+  Throws an error if the path does not exist or is not a directory.
+</Warning>
+
+```typescript
+import { CapabilitySet, AccessMode } from 'nono-ts';
+
+const caps = new CapabilitySet();
+
+// Read-only access to system libraries
+caps.allowPath('/usr/lib', AccessMode.Read);
+
+// Read-write access to application data
+caps.allowPath('/var/app/data', AccessMode.ReadWrite);
+
+// Write-only access to logs
+caps.allowPath('/var/log/app', AccessMode.Write);
+```
+
+---
+
+### allowFile
+
+```typescript
+allowFile(path: string, mode: AccessMode): void
+```
+
+Grant access to a single file.
+
+<ParamField path="path" type="string" required>
+  Absolute path to the file. Must exist and be a regular file.
+</ParamField>
+
+<ParamField path="mode" type="AccessMode" required>
+  Access level to grant: `Read`, `Write`, or `ReadWrite`.
+</ParamField>
+
+<Warning>
+  Throws an error if the path does not exist or is not a file.
+</Warning>
+
+```typescript
+caps.allowFile('/etc/hosts', AccessMode.Read);
+caps.allowFile('/var/run/app.pid', AccessMode.ReadWrite);
+```
+
+---
+
+### blockNetwork
+
+```typescript
+blockNetwork(): void
+```
+
+Block all outbound network access. Once blocked, the process cannot make any network connections.
+
+```typescript
+caps.blockNetwork();
+console.log(caps.isNetworkBlocked); // true
+```
+
+---
+
+### allowCommand
+
+```typescript
+allowCommand(cmd: string): void
+```
+
+Add a command to the allow list. Commands on the allow list can be executed even if they would otherwise be blocked.
+
+<ParamField path="cmd" type="string" required>
+  The command name to allow (e.g., `"git"`, `"npm"`).
+</ParamField>
+
+```typescript
+caps.allowCommand('git');
+caps.allowCommand('npm');
+```
+
+---
+
+### blockCommand
+
+```typescript
+blockCommand(cmd: string): void
+```
+
+Add a command to the block list. Blocked commands cannot be executed.
+
+<ParamField path="cmd" type="string" required>
+  The command name to block (e.g., `"curl"`, `"wget"`).
+</ParamField>
+
+```typescript
+caps.blockCommand('curl');
+caps.blockCommand('wget');
+```
+
+---
+
+### platformRule
+
+```typescript
+platformRule(rule: string): void
+```
+
+Add a raw platform-specific sandbox rule.
+
+<ParamField path="rule" type="string" required>
+  On macOS, this is a Seatbelt S-expression. Ignored on Linux.
+</ParamField>
+
+<Warning>
+  Throws an error if the rule is malformed or attempts to grant dangerous access.
+</Warning>
+
+```typescript
+// macOS Seatbelt rule
+caps.platformRule('(allow file-read* (subpath "/opt/custom"))');
+```
+
+---
+
+### deduplicate
+
+```typescript
+deduplicate(): void
+```
+
+Remove duplicate filesystem capabilities, keeping the highest access level for each path.
+
+```typescript
+caps.allowPath('/tmp', AccessMode.Read);
+caps.allowPath('/tmp', AccessMode.Write);
+caps.deduplicate();
+// Now /tmp has ReadWrite access
+```
+
+---
+
+### pathCovered
+
+```typescript
+pathCovered(path: string): boolean
+```
+
+Check if a path is covered by an existing directory capability.
+
+<ParamField path="path" type="string" required>
+  The path to check.
+</ParamField>
+
+<ResponseField name="return" type="boolean">
+  `true` if the path would be accessible, `false` otherwise.
+</ResponseField>
+
+```typescript
+caps.allowPath('/tmp', AccessMode.ReadWrite);
+
+caps.pathCovered('/tmp/foo/bar.txt');  // true
+caps.pathCovered('/var/data');          // false
+```
+
+---
+
+### fsCapabilities
+
+```typescript
+fsCapabilities(): FsCapabilityInfo[]
+```
+
+Get a list of all filesystem capabilities in this set.
+
+<ResponseField name="return" type="FsCapabilityInfo[]">
+  Array of capability objects with the following properties:
+  - `original`: The path as originally specified
+  - `resolved`: The canonicalized absolute path
+  - `access`: Access mode string (`"read"`, `"write"`, or `"read+write"`)
+  - `isFile`: `true` if this is a file capability, `false` for directories
+  - `source`: How the capability was added
+</ResponseField>
+
+```typescript
+caps.allowPath('/tmp', AccessMode.ReadWrite);
+caps.allowFile('/etc/hosts', AccessMode.Read);
+
+const capabilities = caps.fsCapabilities();
+console.log(capabilities);
+// [
+//   { original: '/tmp', resolved: '/private/tmp', access: 'read+write', isFile: false, source: 'api' },
+//   { original: '/etc/hosts', resolved: '/private/etc/hosts', access: 'read', isFile: true, source: 'api' }
+// ]
+```
+
+---
+
+### summary
+
+```typescript
+summary(): string
+```
+
+Get a human-readable summary of all capabilities.
+
+<ResponseField name="return" type="string">
+  Multi-line string describing all filesystem and network capabilities.
+</ResponseField>
+
+```typescript
+caps.allowPath('/tmp', AccessMode.ReadWrite);
+caps.allowPath('/usr', AccessMode.Read);
+caps.blockNetwork();
+
+console.log(caps.summary());
+// Filesystem:
+//   /private/tmp [read+write] (dir)
+//   /usr [read] (dir)
+// Network:
+//   outbound: blocked
+```
+
+## Properties
+
+### isNetworkBlocked
+
+```typescript
+get isNetworkBlocked(): boolean
+```
+
+Returns `true` if network access has been blocked.
+
+```typescript
+const caps = new CapabilitySet();
+console.log(caps.isNetworkBlocked); // false
+
+caps.blockNetwork();
+console.log(caps.isNetworkBlocked); // true
+```
+
+## Example: Web Server Sandbox
+
+```typescript
+import { CapabilitySet, AccessMode } from 'nono-ts';
+
+function createWebServerCapabilities(
+  staticDir: string,
+  uploadDir: string
+): CapabilitySet {
+  const caps = new CapabilitySet();
+
+  // Static files (read-only)
+  caps.allowPath(staticDir, AccessMode.Read);
+
+  // Upload directory (read-write)
+  caps.allowPath(uploadDir, AccessMode.ReadWrite);
+
+  // Node.js runtime
+  caps.allowPath('/usr/lib', AccessMode.Read);
+  caps.allowPath('/lib', AccessMode.Read);
+
+  // SSL certificates
+  caps.allowPath('/etc/ssl/certs', AccessMode.Read);
+
+  // DNS resolution
+  caps.allowFile('/etc/resolv.conf', AccessMode.Read);
+  caps.allowFile('/etc/hosts', AccessMode.Read);
+
+  // Temp directory for uploads
+  caps.allowPath('/tmp', AccessMode.ReadWrite);
+
+  return caps;
+}
+
+const caps = createWebServerCapabilities('/var/www/html', '/var/uploads');
+console.log(caps.summary());
+```

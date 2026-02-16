@@ -1,0 +1,230 @@
+---
+title: "QueryContext"
+description: "Test whether operations would be permitted before applying the sandbox"
+---
+
+The `QueryContext` class allows you to query whether filesystem or network operations would be permitted by a given capability set. This is useful for:
+
+- Testing your sandbox configuration before applying it
+- Debugging permission issues
+- Building tools that preview sandbox effects
+
+## Constructor
+
+```typescript
+constructor(caps: CapabilitySet)
+```
+
+Create a new query context from a capability set.
+
+<ParamField path="caps" type="CapabilitySet" required>
+  The capability set to query against.
+</ParamField>
+
+```typescript
+import { CapabilitySet, QueryContext, AccessMode } from 'nono-ts';
+
+const caps = new CapabilitySet();
+caps.allowPath('/tmp', AccessMode.ReadWrite);
+caps.blockNetwork();
+
+const query = new QueryContext(caps);
+```
+
+## Methods
+
+### queryPath
+
+```typescript
+queryPath(path: string, mode: AccessMode): QueryResultInfo
+```
+
+Query whether a filesystem operation would be permitted.
+
+<ParamField path="path" type="string" required>
+  The path to check access for.
+</ParamField>
+
+<ParamField path="mode" type="AccessMode" required>
+  The access mode to check: `Read`, `Write`, or `ReadWrite`.
+</ParamField>
+
+<ResponseField name="return" type="QueryResultInfo">
+  Result object describing whether access would be allowed or denied.
+</ResponseField>
+
+```typescript
+const result = query.queryPath('/tmp/test.txt', AccessMode.Write);
+
+if (result.status === 'allowed') {
+  console.log(`Access granted via: ${result.grantedPath}`);
+  console.log(`Access level: ${result.access}`);
+} else {
+  console.log(`Access denied: ${result.reason}`);
+}
+```
+
+---
+
+### queryNetwork
+
+```typescript
+queryNetwork(): QueryResultInfo
+```
+
+Query whether network access would be permitted.
+
+<ResponseField name="return" type="QueryResultInfo">
+  Result object describing whether network access would be allowed or denied.
+</ResponseField>
+
+```typescript
+const result = query.queryNetwork();
+
+if (result.status === 'allowed') {
+  console.log('Network access is permitted');
+} else {
+  console.log('Network access is blocked');
+}
+```
+
+## QueryResultInfo
+
+The result of a query operation.
+
+### Properties
+
+<ResponseField name="status" type="string" required>
+  Either `"allowed"` or `"denied"`.
+</ResponseField>
+
+<ResponseField name="reason" type="string" required>
+  The reason for the result. Possible values:
+
+  **For allowed results:**
+  - `"granted_path"` — Access granted by a filesystem capability
+  - `"network_allowed"` — Network access is not blocked
+
+  **For denied results:**
+  - `"path_not_granted"` — No capability covers this path
+  - `"insufficient_access"` — Path is covered but with insufficient permissions
+  - `"network_blocked"` — Network access has been blocked
+</ResponseField>
+
+<ResponseField name="grantedPath" type="string | undefined">
+  For `granted_path` results, the path of the capability that grants access.
+</ResponseField>
+
+<ResponseField name="access" type="string | undefined">
+  For `granted_path` results, the access level of the granting capability.
+</ResponseField>
+
+<ResponseField name="granted" type="string | undefined">
+  For `insufficient_access` results, the access level that was granted.
+</ResponseField>
+
+<ResponseField name="requested" type="string | undefined">
+  For `insufficient_access` results, the access level that was requested.
+</ResponseField>
+
+## Examples
+
+### Testing Filesystem Access
+
+```typescript
+import { CapabilitySet, QueryContext, AccessMode } from 'nono-ts';
+
+const caps = new CapabilitySet();
+caps.allowPath('/var/data', AccessMode.Read);
+caps.allowPath('/tmp', AccessMode.ReadWrite);
+
+const query = new QueryContext(caps);
+
+// Test various paths
+const tests = [
+  { path: '/var/data/file.json', mode: AccessMode.Read },
+  { path: '/var/data/file.json', mode: AccessMode.Write },
+  { path: '/tmp/cache.txt', mode: AccessMode.ReadWrite },
+  { path: '/etc/passwd', mode: AccessMode.Read },
+];
+
+for (const test of tests) {
+  const result = query.queryPath(test.path, test.mode);
+  const modeStr = AccessMode[test.mode];
+  console.log(`${test.path} (${modeStr}): ${result.status} - ${result.reason}`);
+}
+
+// Output:
+// /var/data/file.json (Read): allowed - granted_path
+// /var/data/file.json (Write): denied - insufficient_access
+// /tmp/cache.txt (ReadWrite): allowed - granted_path
+// /etc/passwd (Read): denied - path_not_granted
+```
+
+### Insufficient Access Detection
+
+```typescript
+const caps = new CapabilitySet();
+caps.allowPath('/data', AccessMode.Read);
+
+const query = new QueryContext(caps);
+const result = query.queryPath('/data/output.txt', AccessMode.Write);
+
+if (result.reason === 'insufficient_access') {
+  console.log(`Permission denied: granted ${result.granted}, requested ${result.requested}`);
+  // Output: Permission denied: granted read, requested write
+}
+```
+
+### Validating Configuration
+
+```typescript
+function validateSandboxConfig(
+  caps: CapabilitySet,
+  requiredPaths: Array<{ path: string; mode: AccessMode }>
+): string[] {
+  const query = new QueryContext(caps);
+  const errors: string[] = [];
+
+  for (const { path, mode } of requiredPaths) {
+    const result = query.queryPath(path, mode);
+    if (result.status === 'denied') {
+      errors.push(`Missing access: ${path} (${AccessMode[mode]}) - ${result.reason}`);
+    }
+  }
+
+  return errors;
+}
+
+// Usage
+const caps = new CapabilitySet();
+caps.allowPath('/app', AccessMode.Read);
+
+const required = [
+  { path: '/app/config.json', mode: AccessMode.Read },
+  { path: '/app/logs', mode: AccessMode.Write },
+  { path: '/tmp', mode: AccessMode.ReadWrite },
+];
+
+const errors = validateSandboxConfig(caps, required);
+if (errors.length > 0) {
+  console.error('Sandbox configuration incomplete:');
+  errors.forEach(e => console.error(`  - ${e}`));
+}
+```
+
+### Network Access Check
+
+```typescript
+const caps = new CapabilitySet();
+// Network is allowed by default
+
+const query = new QueryContext(caps);
+console.log(query.queryNetwork());
+// { status: 'allowed', reason: 'network_allowed' }
+
+caps.blockNetwork();
+const queryBlocked = new QueryContext(caps);
+console.log(queryBlocked.queryNetwork());
+// { status: 'denied', reason: 'network_blocked' }
+```

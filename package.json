@@ -6,7 +6,14 @@
   "types": "index.d.ts",
   "license": "Apache-2.0",
   "author": "Luke Hinds",
-  "keywords": ["sandbox", "security", "capability", "landlock", "seatbelt", "napi-rs"],
+  "keywords": [
+    "sandbox",
+    "security",
+    "capability",
+    "landlock",
+    "seatbelt",
+    "napi-rs"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/always-further/nono"
@@ -39,5 +46,8 @@
     "index.js",
     "index.d.ts",
     "*.node"
-  ]
+  ],
+  "dependencies": {
+    "mintlify": "^4.2.345"
+  }
 }

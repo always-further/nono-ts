@@ -1,0 +1,297 @@
+---
+title: "Types"
+description: "TypeScript type definitions for the nono SDK"
+---
+
+This page documents all TypeScript types exported by the nono SDK.
+
+## AccessMode
+
+Enum representing the level of filesystem access to grant.
+
+```typescript
+enum AccessMode {
+  Read = 0,
+  Write = 1,
+  ReadWrite = 2,
+}
+```
+
+### Values
+
+| Value | Description |
+|-------|-------------|
+| `Read` | Read-only access to files and directories |
+| `Write` | Write-only access (create, modify, delete) |
+| `ReadWrite` | Full read and write access |
+
+### Usage
+
+```typescript
+import { CapabilitySet, AccessMode } from 'nono-ts';
+
+const caps = new CapabilitySet();
+
+// Read-only access
+caps.allowPath('/etc', AccessMode.Read);
+
+// Write-only access
+caps.allowPath('/var/log', AccessMode.Write);
+
+// Full access
+caps.allowPath('/tmp', AccessMode.ReadWrite);
+```
+
+---
+
+## FsCapabilityInfo
+
+Information about a filesystem capability.
+
+```typescript
+interface FsCapabilityInfo {
+  original: string;
+  resolved: string;
+  access: string;
+  isFile: boolean;
+  source: string;
+}
+```
+
+### Properties
+
+<ResponseField name="original" type="string" required>
+  The path as originally specified when adding the capability.
+</ResponseField>
+
+<ResponseField name="resolved" type="string" required>
+  The canonicalized absolute path after symlink resolution.
+</ResponseField>
+
+<ResponseField name="access" type="string" required>
+  Access level string: `"read"`, `"write"`, or `"read+write"`.
+</ResponseField>
+
+<ResponseField name="isFile" type="boolean" required>
+  `true` if this is a single-file capability, `false` for directories.
+</ResponseField>
+
+<ResponseField name="source" type="string" required>
+  How the capability was added (e.g., `"api"`, `"config"`).
+</ResponseField>
+
+### Example
+
+```typescript
+import { CapabilitySet, AccessMode } from 'nono-ts';
+
+const caps = new CapabilitySet();
+caps.allowPath('/tmp', AccessMode.ReadWrite);
+caps.allowFile('/etc/hosts', AccessMode.Read);
+
+const capabilities = caps.fsCapabilities();
+
+for (const cap of capabilities) {
+  console.log(`Path: ${cap.original}`);
+  console.log(`  Resolved: ${cap.resolved}`);
+  console.log(`  Access: ${cap.access}`);
+  console.log(`  Is File: ${cap.isFile}`);
+  console.log(`  Source: ${cap.source}`);
+}
+```
+
+---
+
+## SupportInfoResult
+
+Information about sandbox support on the current platform.
+
+```typescript
+interface SupportInfoResult {
+  isSupported: boolean;
+  platform: string;
+  details: string;
+}
+```
+
+### Properties
+
+<ResponseField name="isSupported" type="boolean" required>
+  Whether sandboxing is available on this platform.
+</ResponseField>
+
+<ResponseField name="platform" type="string" required>
+  Platform identifier. One of:
+  - `"linux"` — Linux with Landlock support
+  - `"macos"` — macOS with Seatbelt support
+  - `"unsupported"` — Platform not supported
+</ResponseField>
+
+<ResponseField name="details" type="string" required>
+  Human-readable description of the sandbox backend, version, and any limitations.
+</ResponseField>
+
+### Example
+
+```typescript
+import { supportInfo } from 'nono-ts';
+
+const info = supportInfo();
+
+switch (info.platform) {
+  case 'linux':
+    console.log('Using Landlock sandbox');
+    break;
+  case 'macos':
+    console.log('Using Seatbelt sandbox');
+    break;
+  default:
+    console.log('No sandbox available');
+}
+```
+
+---
+
+## QueryResultInfo
+
+Result of a permission query.
+
+```typescript
+interface QueryResultInfo {
+  status: string;
+  reason: string;
+  grantedPath?: string;
+  access?: string;
+  granted?: string;
+  requested?: string;
+}
+```
+
+### Properties
+
+<ResponseField name="status" type="string" required>
+  Result status: `"allowed"` or `"denied"`.
+</ResponseField>
+
+<ResponseField name="reason" type="string" required>
+  Reason for the result:
+
+  **Allowed reasons:**
+  - `"granted_path"` — A filesystem capability grants access
+  - `"network_allowed"` — Network access is not blocked
+
+  **Denied reasons:**
+  - `"path_not_granted"` — No capability covers the path
+  - `"insufficient_access"` — Path covered but with lower access level
+  - `"network_blocked"` — Network has been blocked
+</ResponseField>
+
+<ResponseField name="grantedPath" type="string | undefined">
+  For `granted_path` results, the path of the granting capability.
+</ResponseField>
+
+<ResponseField name="access" type="string | undefined">
+  For `granted_path` results, the access level granted.
+</ResponseField>
+
+<ResponseField name="granted" type="string | undefined">
+  For `insufficient_access` results, the access level that was granted.
+</ResponseField>
+
+<ResponseField name="requested" type="string | undefined">
+  For `insufficient_access` results, the access level that was requested.
+</ResponseField>
+
+### Example
+
+```typescript
+import { CapabilitySet, QueryContext, AccessMode } from 'nono-ts';
+
+const caps = new CapabilitySet();
+caps.allowPath('/data', AccessMode.Read);
+
+const query = new QueryContext(caps);
+const result = query.queryPath('/data/file.txt', AccessMode.Write);
+
+if (result.status === 'denied') {
+  if (result.reason === 'insufficient_access') {
+    console.log(`Have ${result.granted}, need ${result.requested}`);
+  } else if (result.reason === 'path_not_granted') {
+    console.log('Path is not covered by any capability');
+  }
+}
+```
+
+---
+
+## Complete Type Definitions
+
+For reference, here are all the type definitions in a single block:
+
+```typescript
+// Enums
+export const enum AccessMode {
+  Read = 0,
+  Write = 1,
+  ReadWrite = 2,
+}
+
+// Interfaces
+export interface FsCapabilityInfo {
+  original: string;
+  resolved: string;
+  access: string;
+  isFile: boolean;
+  source: string;
+}
+
+export interface SupportInfoResult {
+  isSupported: boolean;
+  platform: string;
+  details: string;
+}
+
+export interface QueryResultInfo {
+  status: string;
+  reason: string;
+  grantedPath?: string;
+  access?: string;
+  granted?: string;
+  requested?: string;
+}
+
+// Classes
+export class CapabilitySet {
+  constructor();
+  allowPath(path: string, mode: AccessMode): void;
+  allowFile(path: string, mode: AccessMode): void;
+  blockNetwork(): void;
+  allowCommand(cmd: string): void;
+  blockCommand(cmd: string): void;
+  platformRule(rule: string): void;
+  deduplicate(): void;
+  pathCovered(path: string): boolean;
+  fsCapabilities(): FsCapabilityInfo[];
+  get isNetworkBlocked(): boolean;
+  summary(): string;
+}
+
+export class SandboxState {
+  static fromCaps(caps: CapabilitySet): SandboxState;
+  static fromJson(json: string): SandboxState;
+  toJson(): string;
+  toCaps(): CapabilitySet;
+  get netBlocked(): boolean;
+}
+
+export class QueryContext {
+  constructor(caps: CapabilitySet);
+  queryPath(path: string, mode: AccessMode): QueryResultInfo;
+  queryNetwork(): QueryResultInfo;
+}
+
+// Functions
+export function apply(caps: CapabilitySet): void;
+export function isSupported(): boolean;
+export function supportInfo(): SupportInfoResult;
+```

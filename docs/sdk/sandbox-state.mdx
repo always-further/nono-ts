@@ -1,0 +1,253 @@
+---
+title: "SandboxState"
+description: "Serialize and deserialize sandbox state for process inheritance"
+---
+
+The `SandboxState` class enables serializing a capability set to JSON and restoring it later. This is primarily useful for passing sandbox configuration to child processes.
+
+## Use Cases
+
+- **Child Process Inheritance**: Serialize the sandbox state, pass it to a child process via environment variable, and have the child apply the same restrictions
+- **Configuration Storage**: Save sandbox configurations to disk for later use
+- **Debugging**: Inspect the serialized state to understand what capabilities are configured
+
+## Static Methods
+
+### fromCaps
+
+```typescript
+static fromCaps(caps: CapabilitySet): SandboxState
+```
+
+Create a `SandboxState` snapshot from a `CapabilitySet`.
+
+<ParamField path="caps" type="CapabilitySet" required>
+  The capability set to serialize.
+</ParamField>
+
+<ResponseField name="return" type="SandboxState">
+  A new `SandboxState` instance containing the serialized capabilities.
+</ResponseField>
+
+```typescript
+import { CapabilitySet, SandboxState, AccessMode } from 'nono-ts';
+
+const caps = new CapabilitySet();
+caps.allowPath('/tmp', AccessMode.ReadWrite);
+caps.blockNetwork();
+
+const state = SandboxState.fromCaps(caps);
+```
+
+---
+
+### fromJson
+
+```typescript
+static fromJson(json: string): SandboxState
+```
+
+Deserialize a `SandboxState` from a JSON string.
+
+<ParamField path="json" type="string" required>
+  The JSON string to parse.
+</ParamField>
+
+<ResponseField name="return" type="SandboxState">
+  A new `SandboxState` instance.
+</ResponseField>
+
+<Warning>
+  Throws an error if the JSON is invalid or malformed.
+</Warning>
+
+```typescript
+const json = '{"fs":[...],"net_blocked":true}';
+const state = SandboxState.fromJson(json);
+```
+
+## Methods
+
+### toJson
+
+```typescript
+toJson(): string
+```
+
+Serialize the state to a JSON string.
+
+<ResponseField name="return" type="string">
+  JSON representation of the sandbox state.
+</ResponseField>
+
+```typescript
+const state = SandboxState.fromCaps(caps);
+const json = state.toJson();
+console.log(json);
+// {"fs":[{"original":"/tmp","resolved":"/private/tmp","access":"read+write","is_file":false}],"net_blocked":true,...}
+```
+
+---
+
+### toCaps
+
+```typescript
+toCaps(): CapabilitySet
+```
+
+Reconstruct a `CapabilitySet` from this state.
+
+<ResponseField name="return" type="CapabilitySet">
+  A new `CapabilitySet` with the same capabilities as the original.
+</ResponseField>
+
+<Warning>
+  Throws an error if any paths in the state no longer exist on the filesystem.
+</Warning>
+
+```typescript
+const state = SandboxState.fromJson(json);
+const caps = state.toCaps();
+
+// Now you can apply the sandbox
+apply(caps);
+```
+
+## Properties
+
+### netBlocked
+
+```typescript
+get netBlocked(): boolean
+```
+
+Returns `true` if network access is blocked in this state.
+
+```typescript
+const state = SandboxState.fromCaps(caps);
+console.log(state.netBlocked); // true
+```
+
+## Example: Child Process Inheritance
+
+### Parent Process
+
+```typescript
+import { CapabilitySet, SandboxState, AccessMode, apply } from 'nono-ts';
+import { spawn } from 'child_process';
+
+// Create capabilities
+const caps = new CapabilitySet();
+caps.allowPath('/var/data', AccessMode.Read);
+caps.allowPath('/tmp', AccessMode.ReadWrite);
+caps.blockNetwork();
+
+// Serialize state
+const state = SandboxState.fromCaps(caps);
+const stateJson = state.toJson();
+
+// Apply sandbox to parent
+apply(caps);
+
+// Spawn child with state in environment
+const child = spawn('node', ['worker.js'], {
+  env: {
+    ...process.env,
+    NONO_STATE: stateJson,
+  },
+});
+
+child.stdout.on('data', (data) => console.log(`child: ${data}`));
+child.stderr.on('data', (data) => console.error(`child error: ${data}`));
+```
+
+### Child Process (worker.js)
+
+```typescript
+import { SandboxState, apply } from 'nono-ts';
+
+// Restore state from environment
+const stateJson = process.env.NONO_STATE;
+if (!stateJson) {
+  console.error('No sandbox state provided');
+  process.exit(1);
+}
+
+try {
+  // Deserialize and apply
+  const state = SandboxState.fromJson(stateJson);
+  const caps = state.toCaps();
+  apply(caps);
+
+  console.log('Sandbox applied successfully');
+  console.log(`Network blocked: ${state.netBlocked}`);
+
+  // Continue with restricted execution...
+} catch (error) {
+  console.error('Failed to apply sandbox:', error.message);
+  process.exit(1);
+}
+```
+
+## Example: Configuration File
+
+### Save Configuration
+
+```typescript
+import { CapabilitySet, SandboxState, AccessMode } from 'nono-ts';
+import * as fs from 'fs';
+
+const caps = new CapabilitySet();
+caps.allowPath('/app', AccessMode.Read);
+caps.allowPath('/var/data', AccessMode.ReadWrite);
+caps.blockNetwork();
+
+const state = SandboxState.fromCaps(caps);
+
+// Save to file
+fs.writeFileSync('sandbox-config.json', state.toJson());
+console.log('Sandbox configuration saved');
+```
+
+### Load Configuration
+
+```typescript
+import { SandboxState, apply } from 'nono-ts';
+import * as fs from 'fs';
+
+// Load from file
+const json = fs.readFileSync('sandbox-config.json', 'utf-8');
+const state = SandboxState.fromJson(json);
+
+console.log(`Loaded sandbox config (network blocked: ${state.netBlocked})`);
+
+// Reconstruct and apply
+const caps = state.toCaps();
+apply(caps);
+```
+
+## JSON Schema
+
+The serialized JSON has the following structure:
+
+```json
+{
+  "fs": [
+    {
+      "original": "/tmp",
+      "resolved": "/private/tmp",
+      "access": "read+write",
+      "is_file": false,
+      "source": "api"
+    }
+  ],
+  "net_blocked": true,
+  "allowed_commands": ["git"],
+  "blocked_commands": ["curl"],
+  "platform_rules": []
+}
+```
+
+<Note>
+  The JSON structure is considered internal and may change between versions. Always use `fromJson()` and `toJson()` rather than parsing manually.
+</Note>

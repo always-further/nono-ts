@@ -1,0 +1,90 @@
+---
+title: "Node.js SDK"
+description: "Embed OS-enforced sandboxing directly into your Node.js applications"
+---
+
+The nono Node.js SDK provides native bindings to the nono sandboxing library, enabling you to apply Landlock (Linux) or Seatbelt (macOS) restrictions from within your JavaScript or TypeScript applications.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Capability-Based" icon="shield-check">
+    Define exactly which filesystem paths and network access your application needs
+  </Card>
+  <Card title="OS-Enforced" icon="lock">
+    Restrictions are enforced by the kernel, not userspace — they cannot be bypassed
+  </Card>
+  <Card title="Irreversible" icon="ban">
+    Once applied, the sandbox cannot be weakened or removed for the lifetime of the process
+  </Card>
+  <Card title="Zero Dependencies" icon="feather">
+    Native Rust code compiled to a single `.node` binary with no runtime dependencies
+  </Card>
+</CardGroup>
+
+## Platform Support
+
+| Platform | Backend | Minimum Version |
+|----------|---------|-----------------|
+| Linux | Landlock | Kernel 5.13+ |
+| macOS | Seatbelt | macOS 10.5+ |
+| Windows | — | Not supported |
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install nono-ts
+```
+
+```bash yarn
+yarn add nono-ts
+```
+
+```bash pnpm
+pnpm add nono-ts
+```
+</CodeGroup>
+
+## Quick Example
+
+```typescript
+import { CapabilitySet, AccessMode, apply, isSupported } from 'nono-ts';
+
+// Check platform support
+if (!isSupported()) {
+  console.error('Sandboxing not supported on this platform');
+  process.exit(1);
+}
+
+// Build capabilities
+const caps = new CapabilitySet();
+caps.allowPath('/tmp', AccessMode.ReadWrite);
+caps.allowPath('/usr/lib', AccessMode.Read);
+caps.allowFile('/etc/resolv.conf', AccessMode.Read);
+caps.blockNetwork();
+
+// Apply sandbox (irreversible)
+apply(caps);
+
+// Process is now restricted to only the granted capabilities
+```
+
+## Architecture
+
+The SDK wraps the Rust `nono` crate using [napi-rs](https://napi.rs/), compiling to a native Node.js addon. This provides:
+
+- **Performance**: Native Rust code with zero JavaScript overhead for sandbox operations
+- **Safety**: Memory-safe Rust implementation with proper error handling
+- **Compatibility**: Works with Node.js 18+ on supported platforms
+
+## API Overview
+
+| Class/Function | Description |
+|----------------|-------------|
+| [`CapabilitySet`](/sdk/capability-set) | Build a set of filesystem and network capabilities |
+| [`QueryContext`](/sdk/query-context) | Query whether operations would be permitted |
+| [`SandboxState`](/sdk/sandbox-state) | Serialize and deserialize sandbox state |
+| [`apply()`](/sdk/functions#apply) | Apply the sandbox with given capabilities |
+| [`isSupported()`](/sdk/functions#issupported) | Check if sandboxing is available |
+| [`supportInfo()`](/sdk/functions#supportinfo) | Get detailed platform support information |

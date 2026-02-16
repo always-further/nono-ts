@@ -1,0 +1,199 @@
+---
+title: "Quickstart"
+description: "Get started with nono sandboxing in your Node.js application in 5 minutes"
+---
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install nono-ts
+```
+
+```bash yarn
+yarn add nono-ts
+```
+
+```bash pnpm
+pnpm add nono-ts
+```
+</CodeGroup>
+
+## Basic Usage
+
+### 1. Check Platform Support
+
+Before applying a sandbox, verify that the current platform supports it:
+
+```typescript
+import { isSupported, supportInfo } from 'nono-ts';
+
+if (!isSupported()) {
+  const info = supportInfo();
+  console.error(`Sandboxing not available: ${info.details}`);
+  process.exit(1);
+}
+```
+
+### 2. Define Capabilities
+
+Create a `CapabilitySet` and add the permissions your application needs:
+
+```typescript
+import { CapabilitySet, AccessMode } from 'nono-ts';
+
+const caps = new CapabilitySet();
+
+// Allow read/write access to a directory
+caps.allowPath('/var/data', AccessMode.ReadWrite);
+
+// Allow read-only access to system libraries
+caps.allowPath('/usr/lib', AccessMode.Read);
+caps.allowPath('/lib', AccessMode.Read);
+
+// Allow access to a specific file
+caps.allowFile('/etc/ssl/certs/ca-certificates.crt', AccessMode.Read);
+```
+
+### 3. Apply the Sandbox
+
+<Warning>
+  Calling `apply()` is **irreversible**. Once applied, the sandbox cannot be weakened or removed for the lifetime of the process.
+</Warning>
+
+```typescript
+import { apply } from 'nono-ts';
+
+// Apply the sandbox
+apply(caps);
+
+// From this point forward, the process can only access granted resources
+```
+
+## Complete Example
+
+Here's a complete example of a sandboxed file processor:
+
+```typescript
+import { CapabilitySet, AccessMode, apply, isSupported } from 'nono-ts';
+import * as fs from 'fs';
+import * as path from 'path';
+
+const INPUT_DIR = '/var/input';
+const OUTPUT_DIR = '/var/output';
+
+function setupSandbox() {
+  if (!isSupported()) {
+    throw new Error('Sandboxing not supported on this platform');
+  }
+
+  const caps = new CapabilitySet();
+
+  // Read from input directory
+  caps.allowPath(INPUT_DIR, AccessMode.Read);
+
+  // Write to output directory
+  caps.allowPath(OUTPUT_DIR, AccessMode.ReadWrite);
+
+  // Node.js runtime needs
+  caps.allowPath('/usr/lib', AccessMode.Read);
+  caps.allowPath('/lib', AccessMode.Read);
+
+  // Block network access
+  caps.blockNetwork();
+
+  // Apply sandbox
+  apply(caps);
+
+  console.log('Sandbox applied successfully');
+}
+
+function processFiles() {
+  const files = fs.readdirSync(INPUT_DIR);
+
+  for (const file of files) {
+    const input = path.join(INPUT_DIR, file);
+    const output = path.join(OUTPUT_DIR, `processed_${file}`);
+
+    const content = fs.readFileSync(input, 'utf-8');
+    const processed = content.toUpperCase(); // Example transformation
+    fs.writeFileSync(output, processed);
+
+    console.log(`Processed: ${file}`);
+  }
+}
+
+// Setup sandbox first
+setupSandbox();
+
+// Now process files with restricted permissions
+processFiles();
+```
+
+## Testing Before Applying
+
+Use `QueryContext` to test whether operations would be permitted before applying the sandbox:
+
+```typescript
+import { CapabilitySet, QueryContext, AccessMode } from 'nono-ts';
+
+const caps = new CapabilitySet();
+caps.allowPath('/tmp', AccessMode.ReadWrite);
+caps.blockNetwork();
+
+const query = new QueryContext(caps);
+
+// Test file access
+const fileResult = query.queryPath('/tmp/test.txt', AccessMode.Write);
+console.log(`Write to /tmp/test.txt: ${fileResult.status}`);
+// Output: Write to /tmp/test.txt: allowed
+
+const homeResult = query.queryPath('/home/user/secret.txt', AccessMode.Read);
+console.log(`Read /home/user/secret.txt: ${homeResult.status}`);
+// Output: Read /home/user/secret.txt: denied
+
+// Test network access
+const netResult = query.queryNetwork();
+console.log(`Network access: ${netResult.status}`);
+// Output: Network access: denied
+```
+
+## Error Handling
+
+The SDK throws errors for invalid operations:
+
+```typescript
+import { CapabilitySet, AccessMode, apply } from 'nono-ts';
+
+const caps = new CapabilitySet();
+
+try {
+  // This will throw if /nonexistent doesn't exist
+  caps.allowPath('/nonexistent', AccessMode.Read);
+} catch (error) {
+  console.error('Failed to add capability:', error.message);
+}
+
+try {
+  apply(caps);
+} catch (error) {
+  console.error('Failed to apply sandbox:', error.message);
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="CapabilitySet" icon="list-check" href="/sdk/capability-set">
+    Learn all the ways to define capabilities
+  </Card>
+  <Card title="QueryContext" icon="magnifying-glass" href="/sdk/query-context">
+    Test permissions before applying the sandbox
+  </Card>
+  <Card title="SandboxState" icon="database" href="/sdk/sandbox-state">
+    Serialize state for child processes
+  </Card>
+  <Card title="Functions" icon="code" href="/sdk/functions">
+    Module-level functions reference
+  </Card>
+</CardGroup>
