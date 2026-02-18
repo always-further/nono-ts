@@ -222,8 +222,8 @@ impl JsSandboxState {
 
     /// Serialize the state to a JSON string.
     #[napi]
-    pub fn to_json(&self) -> String {
-        self.inner.to_json()
+    pub fn to_json(&self) -> Result<String> {
+        self.inner.to_json().map_err(to_napi_err)
     }
 
     /// Deserialize state from a JSON string.

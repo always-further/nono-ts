@@ -1,0 +1,40 @@
+---
+title: "Examples"
+description: "Runnable nono-ts examples in JavaScript and TypeScript"
+---
+
+The repository includes runnable examples for the most common `nono-ts` workflows.
+
+## Run from repository root
+
+```bash
+npm run examples:list
+npm run example:all
+```
+
+Run a single scenario:
+
+```bash
+npm run example:js:03-query-policy
+npm run example:ts:03-query-policy
+```
+
+TypeScript scripts use Node's `--experimental-strip-types` and are best run on Node 22+.
+
+## Scenarios
+
+1. `01-support-check`: detect and print sandbox platform support
+2. `02-build-capabilities`: build a capability set and inspect grants
+3. `03-query-policy`: evaluate allowed/denied operations with `QueryContext`
+4. `04-state-roundtrip`: serialize and restore policy state
+5. `05-safe-apply-pattern`: safe preflight and guarded `apply()`
+
+## Safety
+
+`apply(caps)` is irreversible for the lifetime of the process.  
+`05-safe-apply-pattern` only applies the sandbox when `NONO_APPLY=1` is set.
+
+```bash
+NONO_APPLY=1 npm run example:js:05-safe-apply-pattern
+NONO_APPLY=1 npm run example:ts:05-safe-apply-pattern
+```

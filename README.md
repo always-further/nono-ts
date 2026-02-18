@@ -45,6 +45,23 @@ apply(caps);
 // From this point, the process can only access granted resources
 ```
 
+## Examples
+
+Runnable examples live in `examples/` with both JavaScript and TypeScript variants:
+
+- `01-support-check`: detect platform support
+- `02-build-capabilities`: build and inspect a `CapabilitySet`
+- `03-query-policy`: dry-run policy decisions with `QueryContext`
+- `04-state-roundtrip`: serialize/restore with `SandboxState`
+- `05-safe-apply-pattern`: guarded `apply()` flow (`NONO_APPLY=1`)
+
+```bash
+npm run examples:list
+npm run example:all
+```
+
+See `examples/README.md` for all commands.
+
 ## API
 
 ### `CapabilitySet`
