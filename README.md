@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/nono-ts.png" alt="nono-ts" width="500">
+  <img src="https://raw.githubusercontent.com/always-further/nono-ts/main/assets/nono-ts.png" alt="nono-ts" width="500">
 </p>
 
 <p align="center">
