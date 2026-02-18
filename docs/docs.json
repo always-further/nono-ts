@@ -38,6 +38,7 @@
             "pages": [
               "sdk/overview",
               "sdk/quickstart",
+              "sdk/examples",
               "sdk/capability-set",
               "sdk/query-context",
               "sdk/sandbox-state",
