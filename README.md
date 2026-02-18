@@ -1,19 +1,18 @@
 <p align="center">
-  <img src="assets/nono-ts.png" alt="nono-ts" width="200">
-</p>
-
-<p align="center">
-  Node.js/TypeScript bindings for <a href="https://github.com/always-further/nono">nono</a> capability-based sandboxing
+  <img src="assets/nono-ts.png" alt="nono-ts" width="500">
 </p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/nono-ts"><img src="https://img.shields.io/npm/v/nono-ts.svg" alt="npm version"></a>
   <a href="https://github.com/always-further/nono/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License"></a>
+  <a href="https://docs.nono.sh"><img src="https://img.shields.io/badge/Docs-docs.nono.sh-green.svg" alt="Documentation"/></a>
 </p>
-
+<p>
+  <a href="https://discord.gg/pPcjYzGvbS">
+    <img src="https://img.shields.io/badge/Chat-Join%20Discord-7289da?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord"/>
+  </a>
+</p>
 ---
-
-OS-enforced sandboxing for Node.js applications via [Landlock](https://landlock.io/) (Linux) and [Seatbelt](https://developer.apple.com/library/archive/documentation/Darwin/Reference/ManPages/man7/sandbox.7.html) (macOS).
 
 ## Installation
 
