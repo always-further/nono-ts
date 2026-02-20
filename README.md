@@ -48,15 +48,43 @@ apply(caps);
 
 Runnable examples live in `examples/` with both JavaScript and TypeScript variants:
 
+Build the local native addon first:
+
+```bash
+npm run build:debug
+```
+
 - `01-support-check`: detect platform support
 - `02-build-capabilities`: build and inspect a `CapabilitySet`
 - `03-query-policy`: dry-run policy decisions with `QueryContext`
 - `04-state-roundtrip`: serialize/restore with `SandboxState`
 - `05-safe-apply-pattern`: guarded `apply()` flow (`NONO_APPLY=1`)
+- `06-minimal-safe-cli`: minimal wrapper pattern for safe sandboxed transforms
+- `07-agent-workspace-pattern`: least-privilege input/output workflow for agent-like tasks
+- `08-failure-diagnostics`: preflight + runtime denial diagnostics
+- `09-config-roundtrip`: config-driven policy build and state roundtrip
+- `10-subprocess-inheritance`: policy handoff and query parity in child processes
 
 ```bash
 npm run examples:list
 npm run example:all
+```
+
+Apply examples require explicit opt-in:
+
+```bash
+NONO_APPLY=1 npm run example:js:05-safe-apply-pattern
+NONO_APPLY=1 npm run example:ts:05-safe-apply-pattern
+```
+
+## Demonstrator
+
+An end-to-end demonstrator is available at `demo/sandboxed-file-transformer/`.
+
+```bash
+npm run demo:dry-run
+npm run demo
+npm run demo:attack-test
 ```
 
 See `examples/README.md` for all commands.

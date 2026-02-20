@@ -41,7 +41,7 @@
       },
       {
         "group": "Examples",
-        "pages": ["typescript/examples"]
+        "pages": ["typescript/examples", "typescript/demonstrator"]
       }
     ]
   },

@@ -4,10 +4,12 @@ description: "Runnable nono-ts examples in JavaScript and TypeScript"
 ---
 
 The repository includes runnable examples for the most common `nono-ts` workflows.
+These files in `examples/` are the source of truth. Keep docs snippets aligned to them.
 
 ## Run from repository root
 
 ```bash
+npm run build:debug
 npm run examples:list
 npm run example:all
 ```
@@ -23,11 +25,18 @@ TypeScript scripts use Node's `--experimental-strip-types` and are best run on N
 
 ## Scenarios
 
-1. `01-support-check`: detect and print sandbox platform support
-2. `02-build-capabilities`: build a capability set and inspect grants
-3. `03-query-policy`: evaluate allowed/denied operations with `QueryContext`
-4. `04-state-roundtrip`: serialize and restore policy state
-5. `05-safe-apply-pattern`: safe preflight and guarded `apply()`
+| Scenario | JavaScript | TypeScript | Purpose |
+|----------|------------|------------|---------|
+| `01-support-check` | `examples/js/01-support-check.js` | `examples/ts/01-support-check.ts` | Detect and print platform support |
+| `02-build-capabilities` | `examples/js/02-build-capabilities.js` | `examples/ts/02-build-capabilities.ts` | Build capability sets and inspect grants |
+| `03-query-policy` | `examples/js/03-query-policy.js` | `examples/ts/03-query-policy.ts` | Dry-run allow/deny decisions with `QueryContext` |
+| `04-state-roundtrip` | `examples/js/04-state-roundtrip.js` | `examples/ts/04-state-roundtrip.ts` | Serialize and restore policy state |
+| `05-safe-apply-pattern` | `examples/js/05-safe-apply-pattern.js` | `examples/ts/05-safe-apply-pattern.ts` | Guarded irreversible `apply()` flow |
+| `06-minimal-safe-cli` | `examples/js/06-minimal-safe-cli.js` | `examples/ts/06-minimal-safe-cli.ts` | Small wrapper pattern for sandbox + transform |
+| `07-agent-workspace-pattern` | `examples/js/07-agent-workspace-pattern.js` | `examples/ts/07-agent-workspace-pattern.ts` | Agent-like input/output least-privilege pattern |
+| `08-failure-diagnostics` | `examples/js/08-failure-diagnostics.js` | `examples/ts/08-failure-diagnostics.ts` | Preflight + runtime denial diagnostics |
+| `09-config-roundtrip` | `examples/js/09-config-roundtrip.js` | `examples/ts/09-config-roundtrip.ts` | Config-driven capability build and state parity |
+| `10-subprocess-inheritance` | `examples/js/10-subprocess-inheritance.js` | `examples/ts/10-subprocess-inheritance.ts` | Policy handoff to child process via serialized state |
 
 ## Safety
 
@@ -38,3 +47,15 @@ TypeScript scripts use Node's `--experimental-strip-types` and are best run on N
 NONO_APPLY=1 npm run example:js:05-safe-apply-pattern
 NONO_APPLY=1 npm run example:ts:05-safe-apply-pattern
 ```
+
+## End-to-End Demonstrator
+
+Use the dedicated demonstrator for a full workflow:
+
+```bash
+npm run demo:dry-run
+npm run demo
+npm run demo:attack-test
+```
+
+See [`Demonstrator`](/typescript/demonstrator) for details.
