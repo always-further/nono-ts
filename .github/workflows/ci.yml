@@ -25,6 +25,31 @@ jobs:
       - run: cargo fmt --check
       - run: cargo clippy -- -D warnings
 
+  examples-docs-smoke:
+    name: Examples + Docs Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: dtolnay/rust-toolchain@4be9e76fd7c4901c61fb841f559994984270fce7 # stable
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Build local native addon for examples
+        run: npm run build:debug
+      - name: Run examples list
+        run: npm run examples:list
+      - name: Run safe examples (JS + TS)
+        run: npm run example:all
+      - name: Run demonstrator dry-run
+        run: npm run demo:dry-run
+      - name: Fail on stale docs route pattern
+        run: |
+          if grep -R -n '/sdk/' docs; then
+            echo "Found stale /sdk/ routes in docs."
+            exit 1
+          fi
+
   build:
     name: Build - ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
