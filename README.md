@@ -63,7 +63,7 @@ npm run build:debug
 - `07-agent-workspace-pattern`: least-privilege input/output workflow for agent-like tasks
 - `08-failure-diagnostics`: preflight + runtime denial diagnostics
 - `09-config-roundtrip`: config-driven policy build and state roundtrip
-- `10-subprocess-inheritance`: policy handoff and query parity in child processes
+- `10-subprocess-inheritance`: opt-in `apply()` with child-process inheritance checks
 
 ```bash
 npm run examples:list
@@ -75,6 +75,8 @@ Apply examples require explicit opt-in:
 ```bash
 NONO_APPLY=1 npm run example:js:05-safe-apply-pattern
 NONO_APPLY=1 npm run example:ts:05-safe-apply-pattern
+NONO_APPLY=1 npm run example:js:10-subprocess-inheritance
+NONO_APPLY=1 npm run example:ts:10-subprocess-inheritance
 ```
 
 ## Demonstrator

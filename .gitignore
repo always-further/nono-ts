@@ -12,7 +12,3 @@ npm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
-
-# Demo runtime artifacts
-demo/sandboxed-file-transformer/runtime/
-demo/sandboxed-file-transformer/forbidden/

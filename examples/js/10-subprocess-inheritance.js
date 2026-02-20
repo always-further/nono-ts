@@ -4,9 +4,11 @@ const path = require('node:path');
 const childProcess = require('node:child_process');
 const {
   CapabilitySet,
-  SandboxState,
   QueryContext,
   AccessMode,
+  isSupported,
+  supportInfo,
+  apply,
 } = require('../../index.js');
 
 console.log('nono-ts example: subprocess inheritance');
@@ -16,47 +18,78 @@ const workDir = path.join(tempRoot, 'work');
 const deniedDir = path.join(tempRoot, 'denied');
 fs.mkdirSync(workDir);
 fs.mkdirSync(deniedDir);
+const deniedPath = path.join(deniedDir, 'secret.txt');
+fs.writeFileSync(deniedPath, 'denied content\n', 'utf8');
 
 const caps = new CapabilitySet();
+caps.allowPath(path.dirname(process.execPath), AccessMode.Read);
 caps.allowPath(workDir, AccessMode.ReadWrite);
+caps.allowFile(__filename, AccessMode.Read);
 caps.blockNetwork();
+for (const runtimePath of ['/usr', '/bin', '/lib', '/lib64', '/etc', '/opt', '/System', '/private']) {
+  if (fs.existsSync(runtimePath)) {
+    try {
+      caps.allowPath(runtimePath, AccessMode.Read);
+    } catch (_) {
+      // Best-effort runtime grants for cross-platform Node execution after apply().
+    }
+  }
+}
 
-const stateJson = SandboxState.fromCaps(caps).toJson();
 const allowedPath = path.join(workDir, 'child.txt');
-const deniedPath = path.join(deniedDir, 'secret.txt');
-const indexPath = path.resolve(__dirname, '../../index.js');
+const query = new QueryContext(caps);
+const preAllowed = query.queryPath(allowedPath, AccessMode.Write);
+const preDenied = query.queryPath(deniedPath, AccessMode.Read);
+console.log(`- preflight allowed write: ${preAllowed.status} (${preAllowed.reason})`);
+console.log(`- preflight denied read: ${preDenied.status} (${preDenied.reason})`);
 
 const childScript = `
-const { SandboxState, QueryContext, AccessMode } = require(process.env.NONO_INDEX_PATH);
-const state = SandboxState.fromJson(process.env.NONO_STATE_JSON);
-const caps = state.toCaps();
-const query = new QueryContext(caps);
-const allowed = query.queryPath(process.env.NONO_ALLOWED_PATH, AccessMode.Write);
-const denied = query.queryPath(process.env.NONO_DENIED_PATH, AccessMode.Read);
-const network = query.queryNetwork();
-console.log('- child allowed write:', allowed.status, '(' + allowed.reason + ')');
-console.log('- child denied read:', denied.status, '(' + denied.reason + ')');
-console.log('- child network:', network.status, '(' + network.reason + ')');
+const fs = require('node:fs');
+let writeOk = false;
+let deniedBlocked = false;
+try {
+  fs.writeFileSync(process.env.NONO_ALLOWED_PATH, 'child writes ok\\n', 'utf8');
+  writeOk = true;
+} catch (_) {}
+try {
+  fs.readFileSync(process.env.NONO_DENIED_PATH, 'utf8');
+} catch (error) {
+  if (error && (error.code === 'EACCES' || error.code === 'EPERM')) {
+    deniedBlocked = true;
+  }
+}
+console.log('- child write allowed:', writeOk ? 'PASS' : 'FAIL');
+console.log('- child denied read blocked:', deniedBlocked ? 'PASS' : 'FAIL');
 `;
+
+if (!isSupported()) {
+  const info = supportInfo();
+  console.log(`Unsupported platform: ${info.platform}`);
+  console.log(info.details);
+  fs.rmSync(tempRoot, { recursive: true });
+  process.exit(0);
+}
+
+if (process.env.NONO_APPLY !== '1') {
+  console.log('\nSet NONO_APPLY=1 to apply sandbox and verify child inheritance.');
+  fs.rmSync(tempRoot, { recursive: true });
+  process.exit(0);
+}
+
+console.log('\nApplying sandbox now (irreversible for this process).');
+apply(caps);
 
 const result = childProcess.spawnSync(process.execPath, ['-e', childScript], {
   env: {
     ...process.env,
-    NONO_INDEX_PATH: indexPath,
-    NONO_STATE_JSON: stateJson,
     NONO_ALLOWED_PATH: allowedPath,
     NONO_DENIED_PATH: deniedPath,
   },
   encoding: 'utf8',
 });
 
-const parentQuery = new QueryContext(caps);
-const parentDecision = parentQuery.queryPath(allowedPath, AccessMode.Write);
-console.log(`- parent allowed write: ${parentDecision.status} (${parentDecision.reason})`);
 console.log(result.stdout.trim());
 if (result.stderr.trim()) {
   console.log('\nChild stderr:');
   console.log(result.stderr.trim());
 }
-
-fs.rmSync(tempRoot, { recursive: true });

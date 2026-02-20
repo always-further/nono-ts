@@ -1,4 +1,5 @@
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const {
   CapabilitySet,
@@ -14,11 +15,10 @@ const dryRun = args.has('--dry-run');
 const attackTest = args.has('--attack-test');
 const offline = args.has('--offline');
 
-const demoRoot = __dirname;
-const runtimeDir = path.join(demoRoot, 'runtime');
+const runtimeDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'nono-ts-demo-')));
 const inputDir = path.join(runtimeDir, 'input');
 const outputDir = path.join(runtimeDir, 'output');
-const forbiddenDir = path.join(demoRoot, 'forbidden');
+const forbiddenDir = path.join(runtimeDir, 'forbidden');
 const forbiddenFile = path.join(forbiddenDir, 'do-not-read.txt');
 
 function ensureDemoFiles() {

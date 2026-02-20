@@ -36,7 +36,7 @@ TypeScript scripts use Node's `--experimental-strip-types` and are best run on N
 | `07-agent-workspace-pattern` | `examples/js/07-agent-workspace-pattern.js` | `examples/ts/07-agent-workspace-pattern.ts` | Agent-like input/output least-privilege pattern |
 | `08-failure-diagnostics` | `examples/js/08-failure-diagnostics.js` | `examples/ts/08-failure-diagnostics.ts` | Preflight + runtime denial diagnostics |
 | `09-config-roundtrip` | `examples/js/09-config-roundtrip.js` | `examples/ts/09-config-roundtrip.ts` | Config-driven capability build and state parity |
-| `10-subprocess-inheritance` | `examples/js/10-subprocess-inheritance.js` | `examples/ts/10-subprocess-inheritance.ts` | Policy handoff to child process via serialized state |
+| `10-subprocess-inheritance` | `examples/js/10-subprocess-inheritance.js` | `examples/ts/10-subprocess-inheritance.ts` | Opt-in `apply()` + child-process inheritance check |
 
 ## Safety
 
@@ -46,6 +46,8 @@ TypeScript scripts use Node's `--experimental-strip-types` and are best run on N
 ```bash
 NONO_APPLY=1 npm run example:js:05-safe-apply-pattern
 NONO_APPLY=1 npm run example:ts:05-safe-apply-pattern
+NONO_APPLY=1 npm run example:js:10-subprocess-inheritance
+NONO_APPLY=1 npm run example:ts:10-subprocess-inheritance
 ```
 
 ## End-to-End Demonstrator

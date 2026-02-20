@@ -44,6 +44,8 @@ Run apply demo (explicit opt-in required):
 ```bash
 NONO_APPLY=1 npm run example:js:05-safe-apply-pattern
 NONO_APPLY=1 npm run example:ts:05-safe-apply-pattern
+NONO_APPLY=1 npm run example:js:10-subprocess-inheritance
+NONO_APPLY=1 npm run example:ts:10-subprocess-inheritance
 ```
 
 Run the end-to-end demonstrator:

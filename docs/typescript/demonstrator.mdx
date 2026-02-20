@@ -30,8 +30,8 @@ npm run demo:attack-test
 ## What It Demonstrates
 
 1. **Least privilege**
-- Read-only access to `demo/sandboxed-file-transformer/runtime/input`
-- Read+write access to `demo/sandboxed-file-transformer/runtime/output`
+- Read-only access to an ephemeral temp input directory
+- Read+write access to an ephemeral temp output directory
 - Optional `--offline` network blocking mode
 
 2. **Preflight visibility**
@@ -47,4 +47,5 @@ npm run demo:attack-test
 
 - `apply(caps)` is irreversible for the process lifetime.
 - The demo runs in a dedicated process via npm scripts to keep your shell session unaffected.
+- The demo writes runtime files to the system temp directory, not the repository tree.
 - Attack checks may be marked `INCONCLUSIVE` when target files do not exist on the host.
