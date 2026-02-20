@@ -48,12 +48,18 @@ NONO_APPLY=1 npm run example:js:10-subprocess-inheritance
 NONO_APPLY=1 npm run example:ts:10-subprocess-inheritance
 ```
 
+`10-subprocess-inheritance` reports denied-read outcomes as:
+- `BLOCKED` (`EACCES`/`EPERM`) - expected secure behavior
+- `MISSING` (`ENOENT`) - target file not present on host
+- `ALLOWED` - unexpected and should be investigated
+
 Run the end-to-end demonstrator:
 
 ```bash
 npm run demo:dry-run
 npm run demo
 npm run demo:attack-test
+NONO_DEMO_KEEP_TMP=1 npm run demo:dry-run
 ```
 
 ## Example Layout

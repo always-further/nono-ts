@@ -17,6 +17,7 @@ npm run build:debug
 npm run demo:dry-run
 npm run demo
 npm run demo:attack-test
+NONO_DEMO_KEEP_TMP=1 npm run demo:dry-run
 ```
 
 `demo` and `demo:attack-test` set `NONO_APPLY=1` in npm scripts.

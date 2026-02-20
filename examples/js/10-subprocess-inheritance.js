@@ -15,18 +15,14 @@ console.log('nono-ts example: subprocess inheritance');
 
 const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'nono-example-')));
 const workDir = path.join(tempRoot, 'work');
-const deniedDir = path.join(tempRoot, 'denied');
 fs.mkdirSync(workDir);
-fs.mkdirSync(deniedDir);
-const deniedPath = path.join(deniedDir, 'secret.txt');
-fs.writeFileSync(deniedPath, 'denied content\n', 'utf8');
 
 const caps = new CapabilitySet();
 caps.allowPath(path.dirname(process.execPath), AccessMode.Read);
 caps.allowPath(workDir, AccessMode.ReadWrite);
 caps.allowFile(__filename, AccessMode.Read);
 caps.blockNetwork();
-for (const runtimePath of ['/usr', '/bin', '/lib', '/lib64', '/etc', '/opt', '/System', '/private']) {
+for (const runtimePath of ['/usr', '/bin', '/lib', '/lib64', '/etc', '/opt', '/System', '/Library']) {
   if (fs.existsSync(runtimePath)) {
     try {
       caps.allowPath(runtimePath, AccessMode.Read);
@@ -37,16 +33,25 @@ for (const runtimePath of ['/usr', '/bin', '/lib', '/lib64', '/etc', '/opt', '/S
 }
 
 const allowedPath = path.join(workDir, 'child.txt');
+const deniedCandidates = [
+  path.join(os.homedir(), '.ssh', 'id_rsa'),
+  path.join(os.homedir(), '.ssh', 'config'),
+  path.join(os.homedir(), '.aws', 'credentials'),
+];
+const deniedPath = deniedCandidates[0];
+
 const query = new QueryContext(caps);
 const preAllowed = query.queryPath(allowedPath, AccessMode.Write);
 const preDenied = query.queryPath(deniedPath, AccessMode.Read);
 console.log(`- preflight allowed write: ${preAllowed.status} (${preAllowed.reason})`);
+console.log(`- preflight denied read target: ${deniedPath}`);
 console.log(`- preflight denied read: ${preDenied.status} (${preDenied.reason})`);
 
 const childScript = `
 const fs = require('node:fs');
 let writeOk = false;
-let deniedBlocked = false;
+let deniedState = 'ALLOWED';
+let deniedCode = '';
 try {
   fs.writeFileSync(process.env.NONO_ALLOWED_PATH, 'child writes ok\\n', 'utf8');
   writeOk = true;
@@ -54,12 +59,17 @@ try {
 try {
   fs.readFileSync(process.env.NONO_DENIED_PATH, 'utf8');
 } catch (error) {
-  if (error && (error.code === 'EACCES' || error.code === 'EPERM')) {
-    deniedBlocked = true;
+  deniedCode = (error && error.code) || 'UNKNOWN';
+  if (deniedCode === 'EACCES' || deniedCode === 'EPERM') {
+    deniedState = 'BLOCKED';
+  } else if (deniedCode === 'ENOENT') {
+    deniedState = 'MISSING';
+  } else {
+    deniedState = 'ERROR';
   }
 }
 console.log('- child write allowed:', writeOk ? 'PASS' : 'FAIL');
-console.log('- child denied read blocked:', deniedBlocked ? 'PASS' : 'FAIL');
+console.log('- child denied read state:', deniedState, deniedCode ? '(' + deniedCode + ')' : '');
 `;
 
 if (!isSupported()) {
@@ -83,7 +93,7 @@ const result = childProcess.spawnSync(process.execPath, ['-e', childScript], {
   env: {
     ...process.env,
     NONO_ALLOWED_PATH: allowedPath,
-    NONO_DENIED_PATH: deniedPath,
+    NONO_DENIED_PATH: deniedCandidates.find((p) => fs.existsSync(p)) || deniedCandidates[0],
   },
   encoding: 'utf8',
 });

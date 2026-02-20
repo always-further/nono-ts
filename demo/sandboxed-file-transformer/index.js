@@ -101,45 +101,53 @@ function runAttackTests() {
 }
 
 function main() {
-  ensureDemoFiles();
-  const caps = buildCapabilities();
-  printPreflight(caps);
+  try {
+    ensureDemoFiles();
+    const caps = buildCapabilities();
+    printPreflight(caps);
 
-  if (dryRun) {
-    console.log('\nDry run complete. Sandbox not applied.');
-    return;
+    if (dryRun) {
+      console.log('\nDry run complete. Sandbox not applied.');
+      return;
+    }
+
+    if (!isSupported()) {
+      const info = supportInfo();
+      console.log(`\nUnsupported platform: ${info.platform}`);
+      console.log(info.details);
+      return;
+    }
+
+    if (process.env.NONO_APPLY !== '1') {
+      console.log('\nSet NONO_APPLY=1 to apply sandbox and run transformation.');
+      return;
+    }
+
+    console.log('\nApplying sandbox now (irreversible for this process).');
+    apply(caps);
+
+    const transformed = runTransform();
+    let attack = { passed: 0, failed: 0 };
+    if (attackTest) {
+      console.log('\nRunning attack tests...');
+      attack = runAttackTests();
+    }
+
+    console.log('\nDemo summary');
+    console.log(`- transformed files: ${transformed}`);
+    console.log(`- network mode: ${offline ? 'blocked' : 'allowed'}`);
+    if (attackTest) {
+      console.log(`- attack checks passed: ${attack.passed}`);
+      console.log(`- attack checks failed: ${attack.failed}`);
+    }
+    console.log(`- output directory: ${outputDir}`);
+  } finally {
+    if (process.env.NONO_DEMO_KEEP_TMP === '1') {
+      console.log(`\nKeeping temp demo directory: ${runtimeDir}`);
+    } else {
+      fs.rmSync(runtimeDir, { recursive: true, force: true });
+    }
   }
-
-  if (!isSupported()) {
-    const info = supportInfo();
-    console.log(`\nUnsupported platform: ${info.platform}`);
-    console.log(info.details);
-    return;
-  }
-
-  if (process.env.NONO_APPLY !== '1') {
-    console.log('\nSet NONO_APPLY=1 to apply sandbox and run transformation.');
-    return;
-  }
-
-  console.log('\nApplying sandbox now (irreversible for this process).');
-  apply(caps);
-
-  const transformed = runTransform();
-  let attack = { passed: 0, failed: 0 };
-  if (attackTest) {
-    console.log('\nRunning attack tests...');
-    attack = runAttackTests();
-  }
-
-  console.log('\nDemo summary');
-  console.log(`- transformed files: ${transformed}`);
-  console.log(`- network mode: ${offline ? 'blocked' : 'allowed'}`);
-  if (attackTest) {
-    console.log(`- attack checks passed: ${attack.passed}`);
-    console.log(`- attack checks failed: ${attack.failed}`);
-  }
-  console.log(`- output directory: ${outputDir}`);
 }
 
 main();

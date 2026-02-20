@@ -79,6 +79,11 @@ NONO_APPLY=1 npm run example:js:10-subprocess-inheritance
 NONO_APPLY=1 npm run example:ts:10-subprocess-inheritance
 ```
 
+For `10-subprocess-inheritance`, denied-read results are reported as:
+- `BLOCKED` (`EACCES`/`EPERM`) expected
+- `MISSING` (`ENOENT`) target not present
+- `ALLOWED` unexpected
+
 ## Demonstrator
 
 An end-to-end demonstrator is available at `demo/sandboxed-file-transformer/`.
@@ -87,6 +92,7 @@ An end-to-end demonstrator is available at `demo/sandboxed-file-transformer/`.
 npm run demo:dry-run
 npm run demo
 npm run demo:attack-test
+NONO_DEMO_KEEP_TMP=1 npm run demo:dry-run
 ```
 
 See `examples/README.md` for all commands.

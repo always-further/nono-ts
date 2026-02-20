@@ -25,6 +25,9 @@ npm run demo
 
 # Apply sandbox, transform files, then run attack checks
 npm run demo:attack-test
+
+# Keep temp artifacts for debugging
+NONO_DEMO_KEEP_TMP=1 npm run demo:dry-run
 ```
 
 ## What It Demonstrates
@@ -47,5 +50,6 @@ npm run demo:attack-test
 
 - `apply(caps)` is irreversible for the process lifetime.
 - The demo runs in a dedicated process via npm scripts to keep your shell session unaffected.
-- The demo writes runtime files to the system temp directory, not the repository tree.
+- The demo writes runtime files to the system temp directory, not the repository tree, and cleans them up by default.
+- Set `NONO_DEMO_KEEP_TMP=1` to keep temp artifacts for debugging.
 - Attack checks may be marked `INCONCLUSIVE` when target files do not exist on the host.
