@@ -38,13 +38,13 @@ const deniedCandidates = [
   path.join(os.homedir(), '.ssh', 'config'),
   path.join(os.homedir(), '.aws', 'credentials'),
 ];
-const deniedPath = deniedCandidates[0];
+const selectedDeniedPath = deniedCandidates.find((p) => fs.existsSync(p)) || deniedCandidates[0];
 
 const query = new QueryContext(caps);
 const preAllowed = query.queryPath(allowedPath, AccessMode.Write);
-const preDenied = query.queryPath(deniedPath, AccessMode.Read);
+const preDenied = query.queryPath(selectedDeniedPath, AccessMode.Read);
 console.log(`- preflight allowed write: ${preAllowed.status} (${preAllowed.reason})`);
-console.log(`- preflight denied read target: ${deniedPath}`);
+console.log(`- preflight denied read target: ${selectedDeniedPath}`);
 console.log(`- preflight denied read: ${preDenied.status} (${preDenied.reason})`);
 
 const childScript = `
@@ -93,7 +93,7 @@ const result = childProcess.spawnSync(process.execPath, ['-e', childScript], {
   env: {
     ...process.env,
     NONO_ALLOWED_PATH: allowedPath,
-    NONO_DENIED_PATH: deniedCandidates.find((p) => fs.existsSync(p)) || deniedCandidates[0],
+    NONO_DENIED_PATH: selectedDeniedPath,
   },
   encoding: 'utf8',
 });

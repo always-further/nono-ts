@@ -145,7 +145,12 @@ function main() {
     if (process.env.NONO_DEMO_KEEP_TMP === '1') {
       console.log(`\nKeeping temp demo directory: ${runtimeDir}`);
     } else {
-      fs.rmSync(runtimeDir, { recursive: true, force: true });
+      try {
+        fs.rmSync(runtimeDir, { recursive: true, force: true });
+      } catch (error) {
+        const code = error && error.code ? error.code : 'UNKNOWN';
+        console.log(`\nTemp cleanup skipped (${code}) for: ${runtimeDir}`);
+      }
     }
   }
 }
