@@ -41,6 +41,10 @@ jobs:
         run: npm run examples:list
       - name: Run safe examples (JS + TS)
         run: npm run example:all
+      - name: Run opt-in apply inheritance check (JS)
+        run: NONO_APPLY=1 npm run example:js:10-subprocess-inheritance
+      - name: Run opt-in apply inheritance check (TS)
+        run: NONO_APPLY=1 npm run example:ts:10-subprocess-inheritance
       - name: Run demonstrator dry-run
         run: npm run demo:dry-run
       - name: Fail on stale docs route pattern

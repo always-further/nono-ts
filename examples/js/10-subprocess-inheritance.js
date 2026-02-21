@@ -98,6 +98,18 @@ const result = childProcess.spawnSync(process.execPath, ['-e', childScript], {
   encoding: 'utf8',
 });
 
+if (result.error) {
+  console.error(`Child process spawn failed: ${result.error.message}`);
+  process.exit(1);
+}
+if (typeof result.status === 'number' && result.status !== 0) {
+  console.error(`Child process exited non-zero: ${result.status}`);
+  if (result.stderr.trim()) {
+    console.error(result.stderr.trim());
+  }
+  process.exit(result.status);
+}
+
 console.log(result.stdout.trim());
 if (result.stderr.trim()) {
   console.log('\nChild stderr:');
