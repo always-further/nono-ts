@@ -70,6 +70,10 @@ try {
 }
 console.log('- child write allowed:', writeOk ? 'PASS' : 'FAIL');
 console.log('- child denied read state:', deniedState, deniedCode ? '(' + deniedCode + ')' : '');
+if (!writeOk || deniedState === 'ALLOWED' || deniedState === 'ERROR') {
+  console.error('Inheritance check failed.');
+  process.exit(1);
+}
 `;
 
 if (!isSupported()) {
