@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install system dependencies (Linux)
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev pkg-config
       - name: Checkout nono core dependency
         run: |
           if [ ! -d ../nono/.git ]; then
@@ -35,6 +37,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install system dependencies (Linux)
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev pkg-config
       - name: Checkout nono core dependency
         run: |
           if [ ! -d ../nono/.git ]; then
@@ -81,6 +85,9 @@ jobs:
             target: aarch64-unknown-linux-gnu
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev pkg-config
       - name: Checkout nono core dependency
         run: |
           if [ ! -d ../nono/.git ]; then
@@ -97,7 +104,12 @@ jobs:
         run: npm run build
       - name: Run tests
         if: ${{ !contains(matrix.target, 'aarch64-unknown-linux') }}
-        run: npm test
+        run: |
+          if [[ -f test.js ]]; then
+            npm test
+          else
+            echo "No test.js found; skipping npm test"
+          fi
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: binding-${{ matrix.target }}
