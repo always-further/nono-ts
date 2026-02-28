@@ -41,6 +41,11 @@ npm run example:all
 
 For the guarded apply demos, set `NONO_APPLY=1`.
 
+<Note>
+  The runnable files in `examples/` are the canonical source for end-to-end behavior.
+  This page keeps shorter teaching snippets and links back to those files.
+</Note>
+
 ## Basic Usage
 
 ### 1. Check Platform Support
@@ -92,116 +97,16 @@ apply(caps);
 // From this point forward, the process can only access granted resources
 ```
 
-## Complete Example
+## End-to-End Patterns
 
-Here's a complete example of a sandboxed file processor:
+For complete runnable flows, use these scenarios directly from `examples/`:
 
-```typescript
-import { CapabilitySet, AccessMode, apply, isSupported } from 'nono-ts';
-import * as fs from 'fs';
-import * as path from 'path';
-
-const INPUT_DIR = '/var/input';
-const OUTPUT_DIR = '/var/output';
-
-function setupSandbox() {
-  if (!isSupported()) {
-    throw new Error('Sandboxing not supported on this platform');
-  }
-
-  const caps = new CapabilitySet();
-
-  // Read from input directory
-  caps.allowPath(INPUT_DIR, AccessMode.Read);
-
-  // Write to output directory
-  caps.allowPath(OUTPUT_DIR, AccessMode.ReadWrite);
-
-  // Node.js runtime needs
-  caps.allowPath('/usr/lib', AccessMode.Read);
-  caps.allowPath('/lib', AccessMode.Read);
-
-  // Block network access
-  caps.blockNetwork();
-
-  // Apply sandbox
-  apply(caps);
-
-  console.log('Sandbox applied successfully');
-}
-
-function processFiles() {
-  const files = fs.readdirSync(INPUT_DIR);
-
-  for (const file of files) {
-    const input = path.join(INPUT_DIR, file);
-    const output = path.join(OUTPUT_DIR, `processed_${file}`);
-
-    const content = fs.readFileSync(input, 'utf-8');
-    const processed = content.toUpperCase(); // Example transformation
-    fs.writeFileSync(output, processed);
-
-    console.log(`Processed: ${file}`);
-  }
-}
-
-// Setup sandbox first
-setupSandbox();
-
-// Now process files with restricted permissions
-processFiles();
-```
-
-## Testing Before Applying
-
-Use `QueryContext` to test whether operations would be permitted before applying the sandbox:
-
-```typescript
-import { CapabilitySet, QueryContext, AccessMode } from 'nono-ts';
-
-const caps = new CapabilitySet();
-caps.allowPath('/tmp', AccessMode.ReadWrite);
-caps.blockNetwork();
-
-const query = new QueryContext(caps);
-
-// Test file access
-const fileResult = query.queryPath('/tmp/test.txt', AccessMode.Write);
-console.log(`Write to /tmp/test.txt: ${fileResult.status}`);
-// Output: Write to /tmp/test.txt: allowed
-
-const homeResult = query.queryPath('/home/user/secret.txt', AccessMode.Read);
-console.log(`Read /home/user/secret.txt: ${homeResult.status}`);
-// Output: Read /home/user/secret.txt: denied
-
-// Test network access
-const netResult = query.queryNetwork();
-console.log(`Network access: ${netResult.status}`);
-// Output: Network access: denied
-```
-
-## Error Handling
-
-The SDK throws errors for invalid operations:
-
-```typescript
-import { CapabilitySet, AccessMode, apply } from 'nono-ts';
-
-const caps = new CapabilitySet();
-
-try {
-  // This will throw if /nonexistent doesn't exist
-  caps.allowPath('/nonexistent', AccessMode.Read);
-} catch (error) {
-  console.error('Failed to add capability:', error.message);
-}
-
-try {
-  apply(caps);
-} catch (error) {
-  console.error('Failed to apply sandbox:', error.message);
-}
-```
+- `02-build-capabilities` for capability construction patterns
+- `03-query-policy` for preflight allow/deny checks with `QueryContext`
+- `04-state-roundtrip` for `SandboxState` serialization and restoration
+- `05-safe-apply-pattern` for a guarded irreversible `apply()` flow
+- `06`-`10` for wrapper, agent workspace, diagnostics, config roundtrip, and subprocess patterns
+- `npm run demo` / `npm run demo:attack-test` for the end-to-end demonstrator
 
 ## Next Steps
 

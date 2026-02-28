@@ -1,0 +1,55 @@
+---
+title: "Demonstrator"
+description: "End-to-end sandboxed file transformer demo for nono-ts"
+---
+
+This demonstrator provides a full runnable workflow that applies a sandbox, transforms files, and optionally attempts forbidden reads.
+
+The implementation lives at:
+
+- `demo/sandboxed-file-transformer/index.js`
+
+## Run Commands
+
+From the repository root:
+
+```bash
+# Build local native addon once per platform
+npm run build:debug
+
+# Show capabilities and decisions without applying the sandbox
+npm run demo:dry-run
+
+# Apply sandbox and run file transformation
+npm run demo
+
+# Apply sandbox, transform files, then run attack checks
+npm run demo:attack-test
+
+# Keep temp artifacts for debugging
+NONO_DEMO_KEEP_TMP=1 npm run demo:dry-run
+```
+
+## What It Demonstrates
+
+1. **Least privilege**
+- Read-only access to an ephemeral temp input directory
+- Read+write access to an ephemeral temp output directory
+- Optional `--offline` network blocking mode
+
+2. **Preflight visibility**
+- Uses `QueryContext` to print allowed/denied decisions before sandbox application
+
+3. **Runtime enforcement**
+- With `NONO_APPLY=1`, calls `apply(caps)` and performs only allowed transformations
+
+4. **Security checks**
+- Optional attack mode tries forbidden reads and reports pass/fail outcomes
+
+## Safety Notes
+
+- `apply(caps)` is irreversible for the process lifetime.
+- The demo runs in a dedicated process via npm scripts to keep your shell session unaffected.
+- The demo writes runtime files to the system temp directory, not the repository tree, and cleans them up by default.
+- Set `NONO_DEMO_KEEP_TMP=1` to keep temp artifacts for debugging.
+- Attack checks may be marked `INCONCLUSIVE` when target files do not exist on the host.
