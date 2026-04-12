@@ -1,0 +1,36 @@
+{
+  "name": "nono-ts-linux-x64-gnu",
+  "version": "0.4.0",
+  "cpu": [
+    "x64"
+  ],
+  "main": "nono.linux-x64-gnu.node",
+  "files": [
+    "nono.linux-x64-gnu.node"
+  ],
+  "description": "Node.js/TypeScript bindings for nono capability-based sandboxing",
+  "keywords": [
+    "sandbox",
+    "security",
+    "capability",
+    "landlock",
+    "seatbelt",
+    "napi-rs"
+  ],
+  "author": "Luke Hinds",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">= 18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/always-further/nono.git",
+    "directory": "npm/linux-x64-gnu"
+  },
+  "os": [
+    "linux"
+  ],
+  "libc": [
+    "glibc"
+  ]
+}
