@@ -14,7 +14,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-nono = { "0.7.0" }
+nono = { path = "../nono/crates/nono" }
 napi = { version = "2", default-features = false, features = ["napi9"] }
 napi-derive = "2"
 

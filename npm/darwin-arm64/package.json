@@ -1,0 +1,33 @@
+{
+  "name": "nono-ts-darwin-arm64",
+  "version": "0.4.0",
+  "cpu": [
+    "arm64"
+  ],
+  "main": "nono.darwin-arm64.node",
+  "files": [
+    "nono.darwin-arm64.node"
+  ],
+  "description": "Node.js/TypeScript bindings for nono capability-based sandboxing",
+  "keywords": [
+    "sandbox",
+    "security",
+    "capability",
+    "landlock",
+    "seatbelt",
+    "napi-rs"
+  ],
+  "author": "Luke Hinds",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">= 18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/always-further/nono.git",
+    "directory": "npm/darwin-arm64"
+  },
+  "os": [
+    "darwin"
+  ]
+}

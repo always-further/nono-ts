@@ -100,13 +100,28 @@ jobs:
           path: artifacts
           merge-multiple: true
 
-      - name: Move artifacts to root
-        run: mv artifacts/*.node .
+      - run: npm ci
 
-      - name: List artifacts
-        run: ls -la *.node
+      - name: Move artifacts into platform packages
+        run: npx napi artifacts --output-dir artifacts --npm-dir npm
 
-      - name: Publish to npm with provenance (OIDC)
+      - name: List platform packages
+        run: |
+          for dir in npm/*/; do
+            echo "=== $dir ==="
+            ls -la "$dir"
+          done
+
+      - name: Publish platform packages
+        run: |
+          for dir in npm/*/; do
+            if [ -f "$dir/package.json" ]; then
+              echo "Publishing $dir..."
+              npm publish "$dir" --provenance --access public
+            fi
+          done
+
+      - name: Publish main package
         run: npm publish --provenance --access public
 
   dry-run:
@@ -128,11 +143,26 @@ jobs:
           path: artifacts
           merge-multiple: true
 
-      - name: Move artifacts to root
-        run: mv artifacts/*.node .
+      - run: npm ci
 
-      - name: List artifacts
-        run: ls -la *.node
+      - name: Move artifacts into platform packages
+        run: npx napi artifacts --output-dir artifacts --npm-dir npm
 
-      - name: Dry run publish
+      - name: List platform packages
+        run: |
+          for dir in npm/*/; do
+            echo "=== $dir ==="
+            ls -la "$dir"
+          done
+
+      - name: Dry run publish (platform packages)
+        run: |
+          for dir in npm/*/; do
+            if [ -f "$dir/package.json" ]; then
+              echo "Dry run: $dir"
+              npm publish "$dir" --dry-run --access public
+            fi
+          done
+
+      - name: Dry run publish (main package)
         run: npm publish --dry-run --access public

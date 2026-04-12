@@ -353,7 +353,8 @@ fn query_result_to_info(result: &nono::query::QueryResult) -> QueryResultInfo {
 /// can only access resources granted by the capabilities.
 #[napi]
 pub fn apply(caps: &JsCapabilitySet) -> Result<()> {
-    Sandbox::apply(&caps.inner).map_err(to_napi_err)
+    Sandbox::apply(&caps.inner).map_err(to_napi_err)?;
+    Ok(())
 }
 
 /// Check if sandboxing is supported on this platform.
