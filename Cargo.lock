@@ -1002,9 +1002,9 @@ checksum = "09edd9e8b54e49e587e4f6295a7d29c3ea94d469cb40ab8ca70b288248a81db2"
 
 [[package]]
 name = "libc"
-version = "0.2.184"
+version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48f5d2a454e16a5ea0f4ced81bd44e4cfc7bd3a507b61887c99fd3538b28e4af"
+checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
 name = "libdbus-sys"
@@ -1113,9 +1113,9 @@ dependencies = [
 
 [[package]]
 name = "nix"
-version = "0.31.2"
+version = "0.31.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d6d0705320c1e6ba1d912b5e37cf18071b6c2e9b7fa8215a1e8a7651966f5d3"
+checksum = "cf20d2fde8ff38632c426f1165ed7436270b44f199fc55284c38276f9db47c3d"
 dependencies = [
  "bitflags",
  "cfg-if",
@@ -1131,9 +1131,9 @@ checksum = "2bf50223579dc7cdcfb3bfcacf7069ff68243f8c363f62ffa99cf000a6b9c451"
 
 [[package]]
 name = "nono"
-version = "0.33.0"
+version = "0.57.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5c4e0e2dd47aec577dea854c1f2550c7755ec57351a869757eb7ffc29a06321"
+checksum = "ab9e6443eda5f31cbff9630b3565e4ae343ed073a80a153d06ee75d13738c8c3"
 dependencies = [
  "der",
  "getrandom 0.4.1",
@@ -1148,6 +1148,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.11.0",
+ "sigstore-trust-root",
  "sigstore-verify",
  "syn",
  "thiserror",
@@ -1704,9 +1705,9 @@ dependencies = [
 
 [[package]]
 name = "sigstore-trust-root"
-version = "0.6.4"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45f9d2f2dc33e04c80cfd5f11c93b64f0a2555b1d7f92b5aa16307266f05ad8c"
+checksum = "ee8762a4813252faffdf6f7e2040213078eb2482fbc351381134f3fc60c1be9c"
 dependencies = [
  "base64",
  "chrono",
@@ -1763,9 +1764,9 @@ dependencies = [
 
 [[package]]
 name = "sigstore-verify"
-version = "0.6.4"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d44caf1ea504259cf70c7c16527d8a3fa07bd9374ba4e59ec247e7d13a7f2cb8"
+checksum = "6d751d608afd334fb9d8c037ad9efef69f1954494eff99cd79a0a6fc8af34ccb"
 dependencies = [
  "base64",
  "chrono",
