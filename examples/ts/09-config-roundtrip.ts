@@ -27,13 +27,13 @@ const policyConfig = {
   networkBlocked: true,
 };
 
-function toAccessMode(value) {
+function toAccessMode(value: string) {
   if (value === 'read') return AccessMode.Read;
   if (value === 'write') return AccessMode.Write;
   return AccessMode.ReadWrite;
 }
 
-function capsFromConfig(config) {
+function capsFromConfig(config: { paths: { path: string; access: string; isFile?: boolean }[]; networkBlocked: boolean }) {
   const caps = new CapabilitySet();
   for (const entry of config.paths) {
     const mode = toAccessMode(entry.access);
