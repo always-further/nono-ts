@@ -51,7 +51,7 @@ try {
   fs.readFileSync(deniedFile, 'utf8');
   console.log('Unexpected: denied file read succeeded.');
 } catch (error: unknown) {
-  const e = error as NodeJS.ErrnoException;
-  console.log(`Runtime denial captured: ${e.code || 'UNKNOWN'} - ${e.message}`);
+  const e = error instanceof Error ? (error as NodeJS.ErrnoException) : null;
+  console.log(`Runtime denial captured: ${e?.code || 'UNKNOWN'} - ${e?.message || String(error)}`);
   console.log(`Diagnostic hint: preflight reason was "${deniedQuery.reason}".`);
 }

@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@napi-rs/cli": "^3.0.0-alpha.63",
-    "@types/node": "^25.9.1",
+    "@types/node": "^22.19.19",
     "typescript": "^6.0.3"
   },
   "engines": {
