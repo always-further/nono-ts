@@ -50,7 +50,8 @@ apply(caps);
 try {
   fs.readFileSync(deniedFile, 'utf8');
   console.log('Unexpected: denied file read succeeded.');
-} catch (error) {
-  console.log(`Runtime denial captured: ${error.code || 'UNKNOWN'} - ${error.message}`);
+} catch (error: unknown) {
+  const e = error as NodeJS.ErrnoException;
+  console.log(`Runtime denial captured: ${e.code || 'UNKNOWN'} - ${e.message}`);
   console.log(`Diagnostic hint: preflight reason was "${deniedQuery.reason}".`);
 }

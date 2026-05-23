@@ -51,11 +51,14 @@
     "demo:attack-test": "NONO_APPLY=1 node demo/sandboxed-file-transformer/index.js --offline --attack-test",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "node test.js",
+    "typecheck": "tsc --noEmit",
     "universal": "napi universal",
     "version": "napi version"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^3.0.0-alpha.63"
+    "@napi-rs/cli": "^3.0.0-alpha.63",
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">= 18"
@@ -74,10 +77,10 @@
     "index.d.ts"
   ],
   "optionalDependencies": {
-    "nono-ts-darwin-x64": "0.4.0",
     "nono-ts-darwin-arm64": "0.4.0",
-    "nono-ts-linux-x64-gnu": "0.4.0",
-    "nono-ts-linux-arm64-gnu": "0.4.0"
+    "nono-ts-darwin-x64": "0.4.0",
+    "nono-ts-linux-arm64-gnu": "0.4.0",
+    "nono-ts-linux-x64-gnu": "0.4.0"
   },
   "dependencies": {
     "mintlify": "^4.2.345"
