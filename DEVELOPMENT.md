@@ -20,7 +20,7 @@ nono/
 ## Prerequisites
 
 - Rust 1.77+
-- Node.js 18+
+- Node.js 22+
 - npm
 
 ## Setup
@@ -124,13 +124,16 @@ module.exports.myNewFunction = myNewFunction
 
 ## Testing
 
-Run the test script:
+Tests are written in TypeScript using [Vitest](https://vitest.dev/) and live in `tests/*.test.ts`.
 
 ```bash
-npm test
+npm test          # run all tests
+npm run typecheck # TypeScript type check (no emit)
+npm run lint      # Biome lint + format check
+npm run format    # Biome auto-format
 ```
 
-For manual testing:
+For manual exploration:
 
 ```javascript
 const nono = require('./index.js');
@@ -162,7 +165,7 @@ npx napi build --platform --release --target aarch64-unknown-linux-gnu
 Enable backtraces:
 
 ```bash
-RUST_BACKTRACE=1 node test.js
+RUST_BACKTRACE=1 npm test
 ```
 
 ### Build Issues
