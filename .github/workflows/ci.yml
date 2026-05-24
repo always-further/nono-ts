@@ -27,7 +27,7 @@ jobs:
           components: rustfmt, clippy
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: 20
+          node-version: 22
       - run: npm ci
       - run: cargo fmt --check
       - run: cargo clippy -- -D warnings
@@ -100,15 +100,32 @@ jobs:
           targets: ${{ matrix.target }}
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: 20
+          node-version: 22
       - run: npm ci
       - name: Build native module
         run: npm run build
-      - name: Run tests
-        if: ${{ !contains(matrix.target, 'aarch64-unknown-linux') }}
-        run: npm test
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: binding-${{ matrix.target }}
           path: "*.node"
           if-no-files-found: error
+
+  test:
+    name: Test - Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22, 24, 26]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: binding-x86_64-unknown-linux-gnu
+      - name: Run tests
+        run: npm test
