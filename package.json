@@ -50,15 +50,18 @@
     "demo:dry-run": "node demo/sandboxed-file-transformer/index.js --dry-run --offline",
     "demo:attack-test": "NONO_APPLY=1 node demo/sandboxed-file-transformer/index.js --offline --attack-test",
     "prepublishOnly": "napi prepublish -t npm",
-    "test": "node test.js",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "universal": "napi universal",
     "version": "napi version"
   },
   "devDependencies": {
+    "@emnapi/core": "^1.10.0",
+    "@emnapi/runtime": "^1.10.0",
     "@napi-rs/cli": "^3.0.0-alpha.63",
     "@types/node": "^22.19.19",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7"
   },
   "engines": {
     "node": ">= 18"
