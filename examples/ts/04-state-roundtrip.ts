@@ -1,12 +1,19 @@
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
-const { CapabilitySet, SandboxState, QueryContext, AccessMode } = require('../../index.js');
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const {
+	CapabilitySet,
+	SandboxState,
+	QueryContext,
+	AccessMode,
+} = require("../../index.js");
 
-console.log('nono-ts example: sandbox state roundtrip (TypeScript)');
+console.log("nono-ts example: sandbox state roundtrip (TypeScript)");
 
-const tempRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'nono-example-')));
-const workDir = path.join(tempRoot, 'work');
+const tempRoot = fs.realpathSync(
+	fs.mkdtempSync(path.join(os.tmpdir(), "nono-example-")),
+);
+const workDir = path.join(tempRoot, "work");
 fs.mkdirSync(workDir);
 
 const caps = new CapabilitySet();
@@ -21,7 +28,10 @@ const restoredState = SandboxState.fromJson(json);
 const restoredCaps = restoredState.toCaps();
 const query = new QueryContext(restoredCaps);
 
-const allowed = query.queryPath(path.join(workDir, 'log.txt'), AccessMode.Write);
+const allowed = query.queryPath(
+	path.join(workDir, "log.txt"),
+	AccessMode.Write,
+);
 const denied = query.queryNetwork();
 
 console.log(`Roundtrip path query: ${allowed.status} (${allowed.reason})`);

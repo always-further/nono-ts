@@ -33,6 +33,8 @@ jobs:
       - run: cargo clippy -- -D warnings
       - name: TypeScript type check
         run: npm run typecheck
+      - name: Biome lint + format check
+        run: npm run lint
 
   examples-docs-smoke:
     name: Examples + Docs Smoke
