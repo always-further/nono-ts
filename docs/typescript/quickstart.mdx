@@ -19,30 +19,19 @@ pnpm add nono-ts
 ```
 </CodeGroup>
 
-## Runnable Examples
+## Runnable Smoke Tests
 
-Use the repository examples for end-to-end runnable flows:
-
-- `/examples/js/01-support-check.js`
-- `/examples/js/02-build-capabilities.js`
-- `/examples/js/03-query-policy.js`
-- `/examples/js/04-state-roundtrip.js`
-- `/examples/js/05-safe-apply-pattern.js`
-- `/examples/ts/01-support-check.ts`
-- `/examples/ts/02-build-capabilities.ts`
-- `/examples/ts/03-query-policy.ts`
-- `/examples/ts/04-state-roundtrip.ts`
-- `/examples/ts/05-safe-apply-pattern.ts`
+The repository includes end-to-end scenario scripts under `tests/smoke/` in both JavaScript and TypeScript. These also serve as readable usage documentation.
 
 ```bash
-npm run examples:list
-npm run example:all
+npm run build:debug
+npm test
 ```
 
 For the guarded apply demos, set `NONO_APPLY=1`.
 
 <Note>
-  The runnable files in `examples/` are the canonical source for end-to-end behavior.
+  The scripts in `tests/smoke/` are the canonical source for end-to-end behavior.
   This page keeps shorter teaching snippets and links back to those files.
 </Note>
 
@@ -99,7 +88,7 @@ apply(caps);
 
 ## End-to-End Patterns
 
-For complete runnable flows, use these scenarios directly from `examples/`:
+For complete runnable flows, use these scenarios directly from `tests/smoke/`:
 
 - `02-build-capabilities` for capability construction patterns
 - `03-query-policy` for preflight allow/deny checks with `QueryContext`
