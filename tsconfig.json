@@ -10,5 +10,5 @@
     "moduleDetection": "force",
     "types": ["node"]
   },
-  "include": ["examples/ts/**/*.ts", "tests/**/*.ts", "vitest.config.mts"]
+  "include": ["tests/**/*.ts", "vitest.config.mts"]
 }

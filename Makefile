@@ -31,15 +31,10 @@ typecheck: ## TypeScript type check only
 test: build-debug ## Build debug addon then run Vitest suite
 	npm test
 
-##@ Examples & smoke (mirrors CI examples-docs-smoke job)
+##@ Smoke tests & demo (mirrors CI examples-docs-smoke job)
 
-examples: build-debug ## Build debug addon then run all JS + TS examples
-	npm run examples:list
-	npm run example:all
-	NONO_APPLY=1 npm run example:js:10-subprocess-inheritance
-	NONO_APPLY=1 npm run example:ts:10-subprocess-inheritance
-
-smoke: build-debug ## Run demonstrator dry-run and stale-docs check
+smoke: build-debug ## Build debug addon then run smoke tests + demo dry-run
+	npx vitest run --reporter=verbose tests/smoke/smoke.test.ts
 	npm run demo:dry-run
 	@if grep -R -n '/sdk/' docs; then \
 		echo "Found stale /sdk/ routes in docs."; \
@@ -48,7 +43,7 @@ smoke: build-debug ## Run demonstrator dry-run and stale-docs check
 
 ##@ Full CI replication
 
-ci: lint test examples smoke ## Run everything CI runs, in order
+ci: lint test smoke ## Run everything CI runs, in order
 
 ##@ Utilities
 

@@ -12,8 +12,12 @@ nono/
 └── nono-ts/                 # Node.js bindings (this package)
     ├── src/
     │   └── lib.rs           # napi-rs bindings
-    ├── tests/               # Vitest test suites
-    ├── examples/            # JS and TS usage examples
+    ├── tests/
+    │   ├── unit/            # Vitest unit tests
+    │   └── smoke/           # Subprocess smoke tests (also readable as usage docs)
+    │       ├── js/          # Plain JS scripts, one per scenario
+    │       ├── ts/          # TypeScript equivalents
+    │       └── smoke.test.ts # Vitest runner — spawns each script, checks exit 0
     ├── Cargo.toml
     ├── package.json
     └── index.js
@@ -76,10 +80,13 @@ This compiles the Rust code and produces a native `.node` file for your platform
 
 ## Testing
 
-Tests are written in TypeScript using [Vitest](https://vitest.dev/) and live in `tests/*.test.ts`.
+Tests live under `tests/` and are split into two layers:
+
+- **`tests/unit/`** — fast Vitest tests for correctness assertions
+- **`tests/smoke/`** — JS and TS scripts that exercise the full public API end-to-end. These also serve as readable usage documentation — read them to understand how the library works.
 
 ```bash
-make test
+make test        # unit + smoke tests
 ```
 
 For manual exploration:
