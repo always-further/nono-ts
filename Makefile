@@ -36,11 +36,11 @@ test: build-debug ## Build debug addon then run Vitest suite
 smoke: build-debug ## Build debug addon then run smoke tests + demo dry-run
 	npx vitest run --reporter=verbose tests/smoke/smoke.test.ts
 	npm run demo:dry-run
-	@if [ ! -d "../docs" ]; then \
-		echo "Error: docs directory not found at ../docs"; \
+	@if [ ! -d "docs" ]; then \
+		echo "Error: docs directory not found"; \
 		exit 1; \
 	fi
-	@if grep -R -n '/sdk/' ../docs; then \
+	@if grep -R -n '/sdk/' docs; then \
 		echo "Found stale /sdk/ routes in docs."; \
 		exit 1; \
 	fi
