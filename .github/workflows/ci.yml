@@ -53,20 +53,18 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - name: Build local native addon for examples
+      - name: Build local native addon
         run: npm run build:debug
-      - name: Run examples list
-        run: npm run examples:list
-      - name: Run safe examples (JS + TS)
-        run: npm run example:all
-      - name: Run opt-in apply inheritance check (JS)
-        run: NONO_APPLY=1 npm run example:js:10-subprocess-inheritance
-      - name: Run opt-in apply inheritance check (TS)
-        run: NONO_APPLY=1 npm run example:ts:10-subprocess-inheritance
+      - name: Run smoke tests (subprocess)
+        run: npm test -- --reporter=verbose tests/smoke/smoke.test.ts
       - name: Run demonstrator dry-run
         run: npm run demo:dry-run
       - name: Fail on stale docs route pattern
         run: |
+          if [ ! -d "docs" ]; then
+            echo "Error: docs directory not found"
+            exit 1
+          fi
           if grep -R -n '/sdk/' docs; then
             echo "Found stale /sdk/ routes in docs."
             exit 1

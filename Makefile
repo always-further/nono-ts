@@ -1,0 +1,59 @@
+.PHONY: all build build-debug test lint format typecheck examples smoke ci clean help
+
+# Default target
+all: build
+
+##@ Build
+
+build: ## Release build for the current platform
+	npm run build
+
+build-debug: ## Debug build for the current platform
+	npm run build:debug
+
+##@ Code quality (mirrors CI lint job)
+
+lint: ## Rust fmt check + clippy + TS typecheck + Biome
+	cargo fmt --check
+	cargo clippy -- -D warnings
+	npm run typecheck
+	npm run lint
+
+format: ## Auto-format Rust and JS/TS sources
+	cargo fmt
+	npm run format
+
+typecheck: ## TypeScript type check only
+	npm run typecheck
+
+##@ Testing (mirrors CI test job)
+
+test: build-debug ## Build debug addon then run Vitest suite
+	npm test
+
+##@ Smoke tests & demo (mirrors CI examples-docs-smoke job)
+
+smoke: build-debug ## Build debug addon then run smoke tests + demo dry-run
+	npx vitest run --reporter=verbose tests/smoke/smoke.test.ts
+	npm run demo:dry-run
+	@if [ ! -d "docs" ]; then \
+		echo "Error: docs directory not found"; \
+		exit 1; \
+	fi
+	@if grep -R -n '/sdk/' docs; then \
+		echo "Found stale /sdk/ routes in docs."; \
+		exit 1; \
+	fi
+
+##@ Full CI replication
+
+ci: lint test smoke ## Run everything CI runs, in order
+
+##@ Utilities
+
+clean: ## Remove built native addon and Cargo build artefacts
+	rm -f *.node
+	cargo clean
+
+help: ## Show this help
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
