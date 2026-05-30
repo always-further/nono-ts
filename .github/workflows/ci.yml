@@ -61,7 +61,11 @@ jobs:
         run: npm run demo:dry-run
       - name: Fail on stale docs route pattern
         run: |
-          if grep -R -n '/sdk/' docs; then
+          if [ ! -d "../docs" ]; then
+            echo "Error: docs directory not found at ../docs"
+            exit 1
+          fi
+          if grep -R -n '/sdk/' ../docs; then
             echo "Found stale /sdk/ routes in docs."
             exit 1
           fi
