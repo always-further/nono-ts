@@ -12,6 +12,8 @@ nono/
 └── nono-ts/                 # Node.js bindings (this package)
     ├── src/
     │   └── lib.rs           # napi-rs bindings
+    ├── tests/               # Vitest test suites
+    ├── examples/            # JS and TS usage examples
     ├── Cargo.toml
     ├── package.json
     └── index.js
@@ -20,7 +22,7 @@ nono/
 ## Prerequisites
 
 - Rust 1.77+
-- Node.js 18+
+- Node.js 22+
 - npm
 
 ## Setup
@@ -32,21 +34,60 @@ cd nono-ts
 npm install
 ```
 
+## Common tasks
+
+A `Makefile` wraps all common workflows. Run `make help` to see available targets:
+
+| Target | What it does |
+|---|---|
+| `make build` | Release build for the current platform |
+| `make build-debug` | Debug build (faster, no optimisation) |
+| `make test` | Build debug addon + run Vitest suite |
+| `make lint` | `cargo fmt --check` + clippy + typecheck + Biome |
+| `make format` | Auto-format Rust and JS/TS sources |
+| `make examples` | Build debug addon + run all JS & TS examples |
+| `make smoke` | Demonstrator dry-run + stale-docs check |
+| `make ci` | Run everything CI runs, in order |
+| `make clean` | Remove `.node` artefacts and Cargo build output |
+
+### Replicating CI locally
+
+```bash
+make ci
+```
+
+This runs the same steps as GitHub Actions: Rust fmt/clippy, TypeScript typecheck, Biome lint, Vitest tests, all examples, and the smoke checks — in that order.
+
 ## Building
 
 ### Development Build
 
 ```bash
-npm run build:debug
+make build-debug
 ```
 
 ### Release Build
 
 ```bash
-npm run build
+make build
 ```
 
 This compiles the Rust code and produces a native `.node` file for your platform.
+
+## Testing
+
+Tests are written in TypeScript using [Vitest](https://vitest.dev/) and live in `tests/*.test.ts`.
+
+```bash
+make test
+```
+
+For manual exploration:
+
+```javascript
+const nono = require('./index.js');
+console.log(nono.supportInfo());
+```
 
 ## Local Cargo Workspace
 
@@ -60,7 +101,7 @@ nono = { path = "../nono/crates/nono" }
 When making changes to the core nono library:
 
 1. Edit the Rust code in `../nono/crates/nono/`
-2. Rebuild nono-ts with `npm run build`
+2. Rebuild nono-ts with `make build`
 3. Changes are automatically picked up via the path dependency
 
 ### Testing Changes to Core Library
@@ -68,11 +109,8 @@ When making changes to the core nono library:
 ```bash
 # Make changes to ../nono/crates/nono/src/...
 
-# Rebuild bindings
-npm run build
-
-# Test
-npm test
+# Rebuild bindings and run tests
+make test
 ```
 
 ### Cargo Workspace Considerations
@@ -122,21 +160,6 @@ const { myNewFunction } = nativeBinding
 module.exports.myNewFunction = myNewFunction
 ```
 
-## Testing
-
-Run the test script:
-
-```bash
-npm test
-```
-
-For manual testing:
-
-```javascript
-const nono = require('./index.js');
-console.log(nono.supportInfo());
-```
-
 ## Cross-Compilation
 
 Build for specific targets:
@@ -162,7 +185,7 @@ npx napi build --platform --release --target aarch64-unknown-linux-gnu
 Enable backtraces:
 
 ```bash
-RUST_BACKTRACE=1 node test.js
+RUST_BACKTRACE=1 make test
 ```
 
 ### Build Issues
