@@ -32,6 +32,15 @@ async function exists(filePath) {
   }
 }
 
+function isNativePackageManifest(value) {
+  return (
+    value &&
+    typeof value.name === "string" &&
+    value.name.startsWith("nono-ts-") &&
+    typeof value.main === "string"
+  );
+}
+
 const rootPackage = await readJson(rootPackagePath);
 const nativePackages = [];
 
@@ -46,7 +55,19 @@ for (const entry of await readdir(npmDir, { withFileTypes: true })) {
     continue;
   }
 
-  const nativePackage = await readJson(packageJsonPath);
+  let nativePackage;
+  try {
+    nativePackage = await readJson(packageJsonPath);
+  } catch (error) {
+    console.warn(`Skipping unreadable native package manifest: ${path.relative(rootDir, packageJsonPath)}`);
+    continue;
+  }
+
+  if (!isNativePackageManifest(nativePackage)) {
+    console.warn(`Skipping invalid native package manifest: ${path.relative(rootDir, packageJsonPath)}`);
+    continue;
+  }
+
   nativePackage.version = rootPackage.version;
   await writeJson(packageJsonPath, nativePackage);
 
@@ -69,9 +90,13 @@ if (nativePackages.length === 0) {
 
 nativePackages.sort((a, b) => a.name.localeCompare(b.name));
 
-rootPackage.optionalDependencies = Object.fromEntries(
+const nativeOptionalDependencies = Object.fromEntries(
   nativePackages.map(({ name }) => [name, rootPackage.version]),
 );
+rootPackage.optionalDependencies = {
+  ...rootPackage.optionalDependencies,
+  ...nativeOptionalDependencies,
+};
 
 await writeJson(rootPackagePath, rootPackage);
 

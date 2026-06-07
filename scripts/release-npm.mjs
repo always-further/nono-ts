@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
-import { readFile, readdir, writeFile } from "node:fs/promises";
+import { access, readFile, readdir, writeFile } from "node:fs/promises";
+import { constants } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const npmDir = path.join(rootDir, "npm");
 const args = process.argv.slice(2);
+const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
 function hasFlag(name) {
   return args.includes(name);
@@ -20,7 +22,7 @@ function readOption(name, fallback) {
   }
 
   const index = args.indexOf(name);
-  if (index !== -1 && args[index + 1]) {
+  if (index !== -1 && args[index + 1] && !args[index + 1].startsWith("--")) {
     return args[index + 1];
   }
 
@@ -29,7 +31,7 @@ function readOption(name, fallback) {
 
 const publish = hasFlag("--publish");
 const dryRun = !publish;
-const access = readOption("--access", "public");
+const npmAccess = readOption("--access", "public");
 const tag = readOption("--tag", "latest");
 const otp = readOption("--otp", undefined);
 const provenance = publish && !hasFlag("--no-provenance");
@@ -58,6 +60,19 @@ async function readJson(filePath) {
   return JSON.parse(await readFile(filePath, "utf8"));
 }
 
+async function exists(filePath) {
+  try {
+    await access(filePath, constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isNativePackageManifest(value) {
+  return value && typeof value.name === "string" && value.name.startsWith("nono-ts-");
+}
+
 async function nativePackageDirs() {
   const dirs = [];
 
@@ -68,7 +83,23 @@ async function nativePackageDirs() {
 
     const packageDir = path.join(npmDir, entry.name);
     const packageJsonPath = path.join(packageDir, "package.json");
-    const packageJson = await readJson(packageJsonPath);
+    if (!(await exists(packageJsonPath))) {
+      continue;
+    }
+
+    let packageJson;
+    try {
+      packageJson = await readJson(packageJsonPath);
+    } catch (error) {
+      console.warn(`Skipping unreadable native package manifest: ${path.relative(rootDir, packageJsonPath)}`);
+      continue;
+    }
+
+    if (!isNativePackageManifest(packageJson)) {
+      console.warn(`Skipping invalid native package manifest: ${path.relative(rootDir, packageJsonPath)}`);
+      continue;
+    }
+
     dirs.push({ name: packageJson.name, path: packageDir });
   }
 
@@ -102,7 +133,7 @@ const mutableManifestFiles = [
 ];
 const snapshots = dryRun ? await snapshotFiles(mutableManifestFiles) : undefined;
 
-const publishArgs = ["--access", access, "--tag", tag];
+const publishArgs = ["--access", npmAccess, "--tag", tag];
 if (dryRun) {
   publishArgs.push("--dry-run");
 }
@@ -121,11 +152,11 @@ try {
 
   for (const { name, path: packageDir } of packageDirs) {
     console.log(`\nPublishing native package ${name}`);
-    run("npm", ["publish", packageDir, ...publishArgs]);
+    run(npmCommand, ["publish", packageDir, ...publishArgs]);
   }
 
   console.log("\nPublishing root package nono-ts");
-  run("npm", ["publish", "--ignore-scripts", ...publishArgs]);
+  run(npmCommand, ["publish", "--ignore-scripts", ...publishArgs]);
 } finally {
   if (snapshots) {
     await restoreFiles(snapshots);
