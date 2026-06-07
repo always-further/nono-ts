@@ -99,24 +99,8 @@ jobs:
       - name: Move artifacts into platform packages
         run: npx napi artifacts --output-dir artifacts --npm-dir npm
 
-      - name: List platform packages
-        run: |
-          for dir in npm/*/; do
-            echo "=== $dir ==="
-            ls -la "$dir"
-          done
-
-      - name: Publish platform packages
-        run: |
-          for dir in npm/*/; do
-            if [ -f "$dir/package.json" ]; then
-              echo "Publishing $dir..."
-              npm publish "$dir" --provenance --access public
-            fi
-          done
-
-      - name: Publish main package
-        run: npm publish --provenance --access public
+      - name: Publish packages
+        run: npm run release:npm:publish
 
   dry-run:
     name: Dry run (no publish)
@@ -142,21 +126,5 @@ jobs:
       - name: Move artifacts into platform packages
         run: npx napi artifacts --output-dir artifacts --npm-dir npm
 
-      - name: List platform packages
-        run: |
-          for dir in npm/*/; do
-            echo "=== $dir ==="
-            ls -la "$dir"
-          done
-
-      - name: Dry run publish (platform packages)
-        run: |
-          for dir in npm/*/; do
-            if [ -f "$dir/package.json" ]; then
-              echo "Dry run: $dir"
-              npm publish "$dir" --dry-run --access public
-            fi
-          done
-
-      - name: Dry run publish (main package)
-        run: npm publish --dry-run --access public
+      - name: Dry run publish packages
+        run: npm run release:npm
