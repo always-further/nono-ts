@@ -213,7 +213,4 @@ Verify the nono crate API matches the bindings in `src/lib.rs`. Common issues:
 
 ## Release Process
 
-1. Update version in `package.json` and `Cargo.toml`
-2. Build for all targets
-3. Run `npm run prepublishOnly`
-4. Publish with `npm publish`
+See `RELEASE.md` for the npm release process. The release helper publishes native `npm/*` packages first, then publishes the root `nono-ts` package with native `optionalDependencies` added at publish time.
