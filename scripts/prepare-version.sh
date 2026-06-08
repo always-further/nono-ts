@@ -133,22 +133,38 @@ for (const entry of fs.readdirSync(npmDir, { withFileTypes: true })) {
   });
 }
 
-function replaceFile(file, replacement) {
-  fs.writeFileSync(file, replacement(fs.readFileSync(file, "utf8")));
+function replaceVersion(file, pattern, replacement, { optional = false } = {}) {
+  if (!fs.existsSync(file)) {
+    if (optional) {
+      console.warn(`Skipping missing file: ${path.relative(root, file)}`);
+      return;
+    }
+    throw new Error(`Missing required file: ${path.relative(root, file)}`);
+  }
+
+  const original = fs.readFileSync(file, "utf8");
+  let matched = false;
+  const updated = original.replace(pattern, (...args) => {
+    matched = true;
+    return replacement(...args);
+  });
+  if (!matched) {
+    throw new Error(`No version match found in ${path.relative(root, file)}`);
+  }
+  fs.writeFileSync(file, updated);
 }
 
-replaceFile(path.join(root, "Cargo.toml"), (contents) =>
-  contents.replace(
-    /^(\[package\]\n(?:[^\n]*\n)*?version = )"[^"]+"/m,
-    `$1"${version}"`,
-  ),
+replaceVersion(
+  path.join(root, "Cargo.toml"),
+  /^(\[package\]\r?\n(?:[^\r\n]*\r?\n)*?\s*version\s*=\s*)"[^"]+"/m,
+  (_match, prefix) => `${prefix}"${version}"`,
 );
 
-replaceFile(path.join(root, "Cargo.lock"), (contents) =>
-  contents.replace(
-    /(\[\[package\]\]\nname = "nono-node"\nversion = )"[^"]+"/,
-    `$1"${version}"`,
-  ),
+replaceVersion(
+  path.join(root, "Cargo.lock"),
+  /(\[\[package\]\]\r?\n\s*name\s*=\s*"nono-node"\r?\n\s*version\s*=\s*)"[^"]+"/,
+  (_match, prefix) => `${prefix}"${version}"`,
+  { optional: true },
 );
 
 console.log(`Updated release manifests to ${version}`);

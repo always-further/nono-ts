@@ -31,7 +31,7 @@
     "prepare:npm-publish:dry-run": "node scripts/prepare-npm-publish.mjs --dry-run",
     "release:npm": "node scripts/release-npm.mjs",
     "release:npm:publish": "node scripts/release-npm.mjs --publish",
-    "version:prepare": "scripts/prepare-version.sh",
+    "version:prepare": "bash scripts/prepare-version.sh",
     "lint": "biome check tests/ demo/",
     "format": "biome check --write tests/ demo/",
     "test": "vitest run",
