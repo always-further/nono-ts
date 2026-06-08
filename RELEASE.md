@@ -1,59 +1,71 @@
 # Release
 
-`nono-ts` publishes one root package plus one native package per supported platform.
+`nono-ts` releases are published by GitHub Actions. Do not publish from a laptop for the normal release path.
 
-The root package must be published last. Users on Linux, macOS, npm, and Bun install the root `nono-ts` package first, then their package manager resolves the matching native package from `optionalDependencies`, such as `nono-ts-linux-x64-gnu`.
+The package publishes one root package plus one native package per supported platform. The root package must be published last because package managers resolve the matching native package from root `optionalDependencies`, for example `nono-ts-linux-x64-gnu`.
 
-## Version Updates
+## 1. Prepare The Version PR
 
-Update the same version in:
+Run the version preparation script with the next version:
+
+```bash
+npm run version:prepare -- 0.4.2
+```
+
+That updates:
 
 - `package.json`
+- `package-lock.json`
 - `Cargo.toml`
+- `Cargo.lock`
 - `npm/*/package.json`
 
-Then regenerate checked-in generated files:
+It also runs:
 
 ```bash
 npm run build:debug
 ```
 
-## Dry Run
-
-The release helper is dry-run by default:
+That regenerates the checked-in napi loader/version metadata. If you only want to update manifests while iterating locally, use:
 
 ```bash
-npm run release:npm
+npm run version:prepare -- 0.4.2 --no-build
 ```
 
-It expects native artifacts to already be copied into `npm/*`. In CI this happens with:
+Open a PR with those changes and merge it.
 
-```bash
-npx napi artifacts --output-dir artifacts --npm-dir npm
-```
+## 2. Dry Run CI
 
-The dry-run release helper:
+Before publishing, run the `Publish to npm` workflow manually with `publish_target: dry-run`.
 
-- runs `scripts/prepare-npm-publish.mjs --check-artifacts`
-- dry-runs each `npm/*` native package publish
-- dry-runs the root `nono-ts` publish
-- restores package manifests after the dry-run
+The dry-run workflow builds all native targets, copies artifacts into `npm/*`, runs the release helper in dry-run mode, and verifies the publish order without publishing to npm.
 
-## Publish
+## 3. Publish
 
-To publish from a prepared checkout:
+Create and publish a GitHub release for the merged version tag, for example `v0.4.2`.
+
+The `Publish to npm` workflow runs automatically when the GitHub release is published. It does the full npm release:
+
+1. Build native artifacts for all supported targets.
+2. Download artifacts into the publish job.
+3. Copy artifacts into `npm/*`.
+4. Add native `optionalDependencies` to the root package metadata.
+5. Publish all `npm/*` native packages.
+6. Publish the root `nono-ts` package.
+
+## Manual Fallback
+
+Only use this if CI cannot be used and the checkout already has all native `.node` artifacts copied into `npm/*`:
 
 ```bash
 npm run release:npm:publish
 ```
 
-The publish order is fixed:
+The helper enforces native-first publish order. Its default mode is a dry run:
 
-1. Prepare package metadata and verify native artifacts.
-2. Publish all `npm/*` native packages.
-3. Publish the root `nono-ts` package.
-
-The root package is published with `--ignore-scripts` because the release helper has already prepared the metadata. A direct `npm publish` still runs `prepublishOnly`, which prepares metadata for manual publishing.
+```bash
+npm run release:npm
+```
 
 ## Native Optional Dependencies
 
@@ -66,14 +78,3 @@ npm run prepare:npm-publish -- --check-artifacts
 ```
 
 This keeps local development installs from trying to fetch native packages that may not exist yet, while ensuring the published root package still points users to the matching native package.
-
-## GitHub Release Flow
-
-The `Publish to npm` workflow does the full release flow:
-
-1. Build native artifacts for all supported targets.
-2. Download artifacts into the publish job.
-3. Copy artifacts into `npm/*`.
-4. Run `npm run release:npm:publish`.
-
-Manual workflow dispatch with `publish_target: dry-run` runs the same script without `--publish`.
