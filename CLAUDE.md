@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-nono-ts is a napi-rs project that provides Node.js/TypeScript bindings for the [nono](https://github.com/always-further/nono) capability-based sandboxing library. It wraps the Rust `nono` crate into a native `.node` addon using napi-rs v2.
+nono-ts is a napi-rs project that provides Node.js/TypeScript bindings for the [nono](https://github.com/nolabs-ai/nono) capability-based sandboxing library. It wraps the Rust `nono` crate into a native `.node` addon using napi-rs v2.
 
 ## Build Commands
 
