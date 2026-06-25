@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/always-further/nono.git",
+    "url": "git+https://github.com/nolabs-ai/nono.git",
     "directory": "npm/linux-arm64-gnu"
   },
   "os": [
