@@ -45,6 +45,7 @@
     "@emnapi/runtime": "^1.10.0",
     "@napi-rs/cli": "^3.0.0-alpha.63",
     "@types/node": "^26.1.1",
+    "mintlify": "^4.2.345",
     "typescript": "^7.0.2",
     "vitest": "^4.1.7"
   },
@@ -63,8 +64,5 @@
   "files": [
     "index.js",
     "index.d.ts"
-  ],
-  "dependencies": {
-    "mintlify": "^4.2.345"
-  }
+  ]
 }
