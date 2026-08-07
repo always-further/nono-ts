@@ -1,6 +1,6 @@
 {
   "name": "nono-ts",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Node.js/TypeScript bindings for nono capability-based sandboxing",
   "main": "index.js",
   "types": "index.d.ts",
